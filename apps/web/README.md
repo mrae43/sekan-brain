@@ -1,73 +1,51 @@
-# React + TypeScript + Vite
+# 🎨 Web Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+The user interface for the project, built with **React**, **TypeScript**, and **Tailwind CSS**.
 
-Currently, two official plugins are available:
+## 🛠️ Tech Stack
+- **Framework:** [React](https://react.dev/) (Vite)
+- **Styling:** [Tailwind CSS](https://tailwindcss.com/)
+- **State Management:** (e.g., React Context or Apollo Client)
+- **Data Fetching:** GraphQL (via Apollo Client or Urql)
+- **Testing:** Vitest & Playwright
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## 📁 Directory Structure
+- `src/components/`: Reusable UI components (Buttons, Modals, etc.).
+- `src/hooks/`: Custom React hooks for logic and data fetching.
+- `src/pages/`: Main application views/routes.
+- `src/styles/`: Global CSS and Tailwind directives.
+- `src/graphql/`: Queries and Mutations (.graphql files or gql strings).
 
-## React Compiler
+## 🚦 Local Development
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+### 1. Installation
+If you haven't installed dependencies from the root:
+```bash
+pnpm install
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+### 2. Running the Development Server
+To start the Vite dev server:
+```bash
+pnpm dev
 ```
+The app will be available at: `http://localhost:5173`
+
+### 3. Tailwind CSS
+This project uses a shared Tailwind configuration. Custom theme changes should be made in `packages/tailwind-config` if they affect the whole monorepo.
+
+## 🔗 Connecting to the API
+The frontend expects the GraphQL API to be running at:
+`http://localhost:4000/graphql`
+
+Make sure to set your `VITE_API_URL` in a `.env` file if you are using environment variables.
+
+## 🏗️ Build & Deployment
+To create a production-ready build:
+```bash
+pnpm build
+```
+The optimized files will be generated in the `dist/` folder.
+```
+
+---
