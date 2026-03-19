@@ -1,43 +1,49 @@
 import { Schema, model, Types, Model, HydratedDocument, InferSchemaType } from 'mongoose';
 
-// 1. Define the Schema Structure
 const sentenceSchema = new Schema({
   content: { type: String, required: true },
   noteId: { type: Schema.Types.ObjectId, ref: 'Note', required: true, index: true },
+  
+  // 1. Context Rooting & Subject Grouping
+  contextId: { type: Schema.Types.ObjectId, ref: 'Context', index: true }, 
+  subject: { type: String, index: true }, // e.g., "Dating Game" or "Blockchain"
   sequence: { type: Number, required: true },
   
-  // Lifecycle Management 
+  // 2. Lifecycle Management (The Refinery Pipeline)
   stage: { 
     type: String, 
-    enum: ['garbage', 'brain'], 
+    enum: ['garbage', 'resonance', 'brain'], 
     default: 'garbage', 
     index: true 
   },
 
-  // Vector Search Optimization [cite: 42, 70]
+  // 3. Vector Optimization
   embedding: { 
-    type: Buffer, // Stored as float32 binary for RAM efficiency [cite: 42]
+    type: Buffer, 
     required: false,
-    select: false // Prevent accidental retrieval of large vectors [cite: 71]
+    select: false 
   },
   
-  // Context Enrichment & Nuance
-  // Used to store user-provided tags or "nuance" before promotion to "brain"
+  // 4. Enrichment & Semantic Nuance
+  // Captures the "vibe" or "why" (e.g., Kizuna as a burden)
   enrichmentData: {
-    userNuance: { type: String },
+    userNuance: { type: String }, // Manual context provided by you
+    semanticRole: { type: String }, // e.g., "Counter-argument", "Root Principle"
     tags: [{ type: String, index: true }],
-    metadata: { type: Map, of: String }
+    metadata: { type: Map, of: Schema.Types.Mixed }
   },
   
-  // Knowledge Graph Relationships
+  // 5. Knowledge Graph Relationships (The Connective Tissue)
   relationships: [{
     target: { type: Schema.Types.ObjectId, ref: 'Sentence', index: true },
     type: { 
       type: String, 
-      enum: ['sequential', 'semantic', 'context_enrichment', 'contradicts'],
-      default: 'semantic' 
+      // Dynamic types: 'signaling-staking', 'mask-identity', 'shackle-burden'
+      required: true 
     },
-    weight: { type: Number, default: 1 }
+    // Weight can be negative (e.g., -1 for "Kizuna" as a burden/shackle)
+    weight: { type: Number, default: 1 },
+    isCrossSubject: { type: Boolean, default: false } // Tracks "Horizontal Synthesis"
   }]
 }, {
   timestamps: true,
@@ -45,14 +51,28 @@ const sentenceSchema = new Schema({
   toJSON: { virtuals: true }
 });
 
-// 2. Define Instance Methods (Traditional functions only) 
-sentenceSchema.methods.promoteToBrain = function() {
-  this.stage = 'brain';
-  return this.save();
+// --- Logic & Methods ---
+
+// Instance Method: Handle the "Trigger Enrichment" stage
+sentenceSchema.methods.enrich = function(nuance: string, relationships: any[]) {
+  this.enrichmentData.userNuance = nuance;
+  this.relationships.push(...relationships);
+  this.stage = 'resonance'; // Move to intermediate stage
+  return this;
 };
 
-// 3. Define Static Methods for GraphRAG
-sentenceSchema.statics.findGroundedSubgraph = async function(startIds: Types.ObjectId[], depth: number = 2) {
+// Static Method: Horizontal Synthesis (Cross-subject discovery)
+// Find sentences in OTHER subjects that share the same contextId
+sentenceSchema.statics.findCrossSubjectResonance = async function(contextId: Types.ObjectId, currentSubject: string) {
+  return this.find({
+    contextId,
+    subject: { $ne: currentSubject },
+    stage: 'brain'
+  }).limit(10);
+};
+
+// Static Method: Weighted Graph Traversal for RAG
+sentenceSchema.statics.getBrainContext = async function(startIds: Types.ObjectId[]) {
   return this.aggregate([
     { $match: { _id: { $in: startIds }, stage: 'brain' } },
     {
@@ -61,25 +81,33 @@ sentenceSchema.statics.findGroundedSubgraph = async function(startIds: Types.Obj
         startWith: '$relationships.target',
         connectFromField: 'relationships.target',
         connectToField: '_id',
-        maxDepth: depth,
-        as: 'connectedContext',
-        depthField: 'distance'
+        maxDepth: 3,
+        as: 'network'
       }
-    }
+    },
+    // Filter out connections with negative weights if doing a "positive" search
+    { $addFields: { 
+        network: { $filter: { 
+          input: "$network", 
+          as: "item", 
+          cond: { $gt: ["$$item.weight", -1] } 
+        }}
+    }}
   ]);
 };
 
-// 4. Performance Indexing
-sentenceSchema.index({ stage: 1, noteId: 1 });
-sentenceSchema.index({ 'relationships.target': 1, 'relationships.type': 1 });
+// --- Indexing for Performance ---
+sentenceSchema.index({ contextId: 1, subject: 1 });
+sentenceSchema.index({ 'relationships.type': 1 });
 
-// 5. TypeScript Interface Export
+// --- TypeScript Exports ---
 export type ISentence = InferSchemaType<typeof sentenceSchema>;
 
-// Correctly typing the Hydrated Document to include methods
-export type SentenceDocument = HydratedDocument<ISentence, {
+interface ISentenceMethods {
+  enrich(nuance: string, relationships: any[]): HydratedDocument<ISentence, ISentenceMethods>;
   promoteToBrain(): Promise<SentenceDocument>;
-}>;
+}
 
-// Export the Model
-export const Sentence = model<ISentence, Model<ISentence>>('Sentence', sentenceSchema);
+export type SentenceDocument = HydratedDocument<ISentence, ISentenceMethods>;
+
+export const Sentence = model<ISentence, Model<ISentence, {}, ISentenceMethods>>('Sentence', sentenceSchema);
