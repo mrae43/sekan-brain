@@ -2,10 +2,10 @@ import express from 'express';
 import cors from 'cors';
 import { ApolloServer } from '@apollo/server';
 import { expressMiddleware } from '@as-integrations/express5';
-import { connectDB } from './lib/db.js';  
-import { ENV } from './config/env.js';
-import { typeDefs, resolvers } from './graphql/index.js';
-import { errorHandler } from './middleware/error.handler.js';
+import { connectDB } from './lib/db';  
+import { ENV } from './config/env';
+import { typeDefs, resolvers } from './graphql/index';
+import { errorHandler } from './middleware/error.handler';
 
 const app = express();
 

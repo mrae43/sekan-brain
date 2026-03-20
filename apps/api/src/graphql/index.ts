@@ -1,5 +1,5 @@
 import { ApolloServer } from '@apollo/server';
-import { Sentence, SentenceDocument } from '../models/sentences.js'; // Ensure .js for NodeNext
+import { Sentence, SentenceDocument } from '../models/sentences';
 import GraphQLJSON from 'graphql-type-json';
 
 // 1. Type Definitions
