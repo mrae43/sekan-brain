@@ -1,6 +1,45 @@
 import { Schema, model, Types, Model, HydratedDocument, InferSchemaType } from 'mongoose';
 
-const sentenceSchema = new Schema({
+export interface ISentence {
+  content: string;
+  noteId: Types.ObjectId;
+  contextId?: Types.ObjectId;
+  subject?: string;
+  sequence: number;
+  stage: 'garbage' | 'resonance' | 'brain';
+  embedding?: Buffer;
+  enrichmentData: {
+    userNuance?: string;
+    semanticRole?: string;
+    tags: string[];
+    metadata: Map<string, any>;
+  };
+  relationships: {
+    target: Types.ObjectId;
+    type: string;
+    weight: number;
+    isCrossSubject: boolean;
+  }[];
+}
+
+interface ISentenceMethods {
+  enrich(nuance: string, relationships: any[]): HydratedDocument<ISentence, ISentenceMethods>;
+}
+
+export type SentenceDocument = HydratedDocument<ISentence, ISentenceMethods>;
+
+interface ISentenceModel extends Model<ISentence, {}, ISentenceMethods> {
+  findCrossSubjectResonance(
+    contextId: Types.ObjectId | string, 
+    currentSubject: string
+  ): Promise<SentenceDocument[]>;
+  
+  getBrainContext(
+    startIds: (Types.ObjectId | string)[]
+  ): Promise<SentenceDocument[]>;
+}
+
+const sentenceSchema = new Schema<ISentence, ISentenceModel, ISentenceMethods>({
   content: { type: String, required: true },
   noteId: { type: Schema.Types.ObjectId, ref: 'Note', required: true, index: true },
   
@@ -63,7 +102,7 @@ sentenceSchema.methods.enrich = function(nuance: string, relationships: any[]) {
 
 // Static Method: Horizontal Synthesis (Cross-subject discovery)
 // Find sentences in OTHER subjects that share the same contextId
-sentenceSchema.statics.findCrossSubjectResonance = async function(contextId: Types.ObjectId, currentSubject: string) {
+sentenceSchema.statics.findCrossSubjectResonance = async function(contextId: Types.ObjectId | string, currentSubject: string) {
   return this.find({
     contextId,
     subject: { $ne: currentSubject },
@@ -101,13 +140,5 @@ sentenceSchema.index({ contextId: 1, subject: 1 });
 sentenceSchema.index({ 'relationships.type': 1 });
 
 // --- TypeScript Exports ---
-export type ISentence = InferSchemaType<typeof sentenceSchema>;
 
-interface ISentenceMethods {
-  enrich(nuance: string, relationships: any[]): HydratedDocument<ISentence, ISentenceMethods>;
-  promoteToBrain(): Promise<SentenceDocument>;
-}
-
-export type SentenceDocument = HydratedDocument<ISentence, ISentenceMethods>;
-
-export const Sentence = model<ISentence, Model<ISentence, {}, ISentenceMethods>>('Sentence', sentenceSchema);
+export const Sentence = model<ISentence, ISentenceModel>('Sentence', sentenceSchema);
