@@ -1,0 +1,66 @@
+enum SentenceStage {
+  garbage
+  resonance
+  brain
+}
+
+type EnrichmentData {
+  userNuance: String
+  semanticRole: String
+  tags: [String!]
+  metadata: JSON
+}
+
+type Relationship {
+  target: Sentence!
+  type: String!
+  weight: Float!
+  isCrossSubject: Boolean!
+}
+
+type Sentence {
+  id: ID!
+  content: String!
+  noteId: ID!
+  contextId: ID
+  subject: String
+  sequence: Int!
+  stage: SentenceStage!
+  enrichmentData: EnrichmentData
+  relationships: [Relationship!]
+  createdAt: String!
+  updatedAt: String!
+  
+  network: [Sentence!] 
+}
+
+type Query {
+  getSentence(id: ID!): Sentence
+  
+  findCrossSubjectResonance(contextId: ID!, currentSubject: String!): [Sentence!]
+
+  getBrainContext(startIds: [ID!]!): [Sentence!]
+}
+
+type Mutation {
+  ingestSentence(
+    content: String!, 
+    noteId: ID!, 
+    sequence: Int!, 
+    contextId: ID, 
+    subject: String
+  ): Sentence!
+
+  enrichSentence(
+    id: ID!, 
+    nuance: String!, 
+    relationships: [RelationshipInput!]
+  ): Sentence!
+}
+
+input RelationshipInput {
+  target: ID!
+  type: String!
+  weight: Float
+  isCrossSubject: Boolean
+}
