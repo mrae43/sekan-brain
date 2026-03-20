@@ -1,5 +1,6 @@
 import { ApolloServer } from '@apollo/server';
-import { Sentence, SentenceDocument } from '../models/sentences';
+import { Sentence } from '../models/sentences';
+import { Resolvers } from './__generated__/types';
 import GraphQLJSON from 'graphql-type-json';
 
 // 1. Type Definitions
@@ -71,28 +72,28 @@ export const typeDefs = `#graphql
 `;
 
 // 2. Resolvers (Mapping GQL to Mongoose)
-export const resolvers = {
+export const resolvers: Resolvers = {
   JSON: GraphQLJSON,
   
   Query: {
-    getSentence: async (_: SentenceDocument, { id }: { id: string }) => {
+    getSentence: async (_ , { id }: { id: string }) => {
       return await Sentence.findById(id);
     },
-    findCrossSubjectResonance: async (_: SentenceDocument, { contextId, currentSubject }: any) => {
+    findCrossSubjectResonance: async (_ , { contextId, currentSubject }: any) => {
       // Calling your schema's static method
-      return await (Sentence as any).findCrossSubjectResonance(contextId, currentSubject);
+      return await Sentence.findCrossSubjectResonance(contextId, currentSubject);
     },
-    getBrainContext: async (_: SentenceDocument, { startIds }: { startIds: string[] }) => {
+    getBrainContext: async (_ , { startIds }: { startIds: string[] }) => {
       // Calling your schema's static method for GraphRAG
-      return await (Sentence as any).getBrainContext(startIds);
+      return await Sentence.getBrainContext(startIds);
     }
   },
 
   Mutation: {
-    ingestSentence: async (_: SentenceDocument, args: any) => {
+    ingestSentence: async (_ , args: any) => {
       return await Sentence.create({ ...args, stage: 'garbage' });
     },
-    enrichSentence: async (_: SentenceDocument, { id, nuance, relationships }: any) => {
+    enrichSentence: async (_ , { id, nuance, relationships }: any) => {
       const doc = await Sentence.findById(id);
       if (!doc) throw new Error("Sentence node not found");
       
