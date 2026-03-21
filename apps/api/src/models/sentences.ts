@@ -122,7 +122,8 @@ sentenceSchema.statics.getBrainContext = async function(startIds: Types.ObjectId
         connectFromField: 'relationships.target',
         connectToField: '_id',
         maxDepth: 3,
-        as: 'network'
+        as: 'network',
+        restrictSearchWithMatch: { stage: 'brain' }
       }
     },
     // Filter out connections with negative weights if doing a "positive" search
