@@ -18,6 +18,7 @@ type Relationship {
   type: String!
   weight: Float!
   isCrossSubject: Boolean!
+  description: String
 }
 
 type Sentence {
@@ -65,4 +66,5 @@ input RelationshipInput {
   type: String!
   weight: Float
   isCrossSubject: Boolean
+  description: String
 }

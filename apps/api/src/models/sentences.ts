@@ -82,7 +82,8 @@ const sentenceSchema = new Schema<ISentence, ISentenceModel, ISentenceMethods>({
     },
     // Weight can be negative (e.g., -1 for "Kizuna" as a burden/shackle)
     weight: { type: Number, default: 1 },
-    isCrossSubject: { type: Boolean, default: false } // Tracks "Horizontal Synthesis"
+    isCrossSubject: { type: Boolean, default: false }, // Tracks "Horizontal Synthesis",
+    description: { type: String }
   }]
 }, {
   timestamps: true,
