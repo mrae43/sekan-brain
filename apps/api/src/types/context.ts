@@ -1,4 +1,4 @@
-import { Sentence } from '../models/sentences';
+import { Sentence } from '../models/sentence';
 
 export interface MyContext {
     models: {

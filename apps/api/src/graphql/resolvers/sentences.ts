@@ -1,4 +1,4 @@
-import { Sentence, SentenceDocument } from "../../models/sentences";
+import { Sentence, SentenceDocument } from "../../models/sentence";
 import { Resolvers } from "../__generated__/types";
 import GraphQLJSON from 'graphql-type-json';
 
