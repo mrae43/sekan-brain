@@ -1,12 +1,15 @@
 import express from 'express';
 import cors from 'cors';
+import { readFileSync } from 'fs';
+import path from 'path';
 import { ApolloServer } from '@apollo/server';
 import { expressMiddleware } from '@as-integrations/express5';
 import { connectDB } from './lib/db';  
 import { ENV } from './config/env';
-import { typeDefs, resolvers } from './graphql/index';
+import { resolvers } from './graphql/resolvers/sentences';
 import { errorHandler } from './middleware/error.handler';
 
+const typeDefs = readFileSync(path.join(__dirname, 'schema.gql'), 'utf-8');
 const app = express();
 
 // 1. Core Middleware
