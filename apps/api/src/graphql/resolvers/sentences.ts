@@ -4,6 +4,11 @@ import GraphQLJSON from 'graphql-type-json';
 
 export const resolvers: Resolvers = {
     JSON: GraphQLJSON,
+    Sentence: {
+      network: async (parent: any) => {
+        return await Sentence.getBrainContext([parent.id]);
+      }
+    },
     Query: {
         getSentence: async (_, { id }: { id: string }) => {
             return await Sentence.findById(id);
