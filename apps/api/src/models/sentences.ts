@@ -97,7 +97,7 @@ const sentenceSchema = new Schema<ISentence, ISentenceModel, ISentenceMethods>({
 sentenceSchema.methods.enrich = function(nuance: string, relationships: any[]) {
   this.enrichmentData.userNuance = nuance;
   this.relationships.push(...relationships);
-  this.stage = 'resonance'; // Move to intermediate stage
+  this.stage = 'brain';
   return this;
 };
 
