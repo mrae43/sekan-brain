@@ -1,3 +1,5 @@
+scalar JSON
+
 enum SentenceStage {
   garbage
   resonance
