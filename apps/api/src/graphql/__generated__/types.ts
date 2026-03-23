@@ -28,6 +28,11 @@ export type EnrichmentData = {
   userNuance?: Maybe<Scalars['String']['output']>;
 };
 
+export type EnrichmentPayload = {
+  nuance: Scalars['String']['input'];
+  relationships?: InputMaybe<Array<RelationshipInput>>;
+};
+
 export type Mutation = {
   __typename?: 'Mutation';
   enrichSentence: Sentence;
@@ -37,15 +42,14 @@ export type Mutation = {
 
 export type MutationEnrichSentenceArgs = {
   id: Scalars['ID']['input'];
-  nuance: Scalars['String']['input'];
-  relationships?: InputMaybe<Array<RelationshipInput>>;
+  payload: EnrichmentPayload;
 };
 
 
 export type MutationIngestSentenceArgs = {
   content: Scalars['String']['input'];
-  contextId?: InputMaybe<Scalars['String']['input']>;
-  noteId: Scalars['String']['input'];
+  contextId?: InputMaybe<Scalars['ID']['input']>;
+  noteId: Scalars['ID']['input'];
   sequence: Scalars['Int']['input'];
   subject?: InputMaybe<Scalars['String']['input']>;
 };
@@ -75,6 +79,7 @@ export type QueryGetSentenceArgs = {
 
 export type Relationship = {
   __typename?: 'Relationship';
+  description?: Maybe<Scalars['String']['output']>;
   isCrossSubject: Scalars['Boolean']['output'];
   target: Sentence;
   type: Scalars['String']['output'];
@@ -82,6 +87,7 @@ export type Relationship = {
 };
 
 export type RelationshipInput = {
+  description?: InputMaybe<Scalars['String']['input']>;
   isCrossSubject?: InputMaybe<Scalars['Boolean']['input']>;
   target: Scalars['ID']['input'];
   type: Scalars['String']['input'];
@@ -95,6 +101,7 @@ export type Sentence = {
   createdAt: Scalars['String']['output'];
   enrichmentData?: Maybe<EnrichmentData>;
   id: Scalars['ID']['output'];
+  network?: Maybe<Array<Sentence>>;
   noteId: Scalars['ID']['output'];
   relationships?: Maybe<Array<Relationship>>;
   sequence: Scalars['Int']['output'];
@@ -185,6 +192,7 @@ export type DirectiveResolverFn<TResult = Record<PropertyKey, never>, TParent = 
 export type ResolversTypes = ResolversObject<{
   Boolean: ResolverTypeWrapper<Scalars['Boolean']['output']>;
   EnrichmentData: ResolverTypeWrapper<EnrichmentData>;
+  EnrichmentPayload: EnrichmentPayload;
   Float: ResolverTypeWrapper<Scalars['Float']['output']>;
   ID: ResolverTypeWrapper<Scalars['ID']['output']>;
   Int: ResolverTypeWrapper<Scalars['Int']['output']>;
@@ -202,6 +210,7 @@ export type ResolversTypes = ResolversObject<{
 export type ResolversParentTypes = ResolversObject<{
   Boolean: Scalars['Boolean']['output'];
   EnrichmentData: EnrichmentData;
+  EnrichmentPayload: EnrichmentPayload;
   Float: Scalars['Float']['output'];
   ID: Scalars['ID']['output'];
   Int: Scalars['Int']['output'];
@@ -226,7 +235,7 @@ export interface JsonScalarConfig extends GraphQLScalarTypeConfig<ResolversTypes
 }
 
 export type MutationResolvers<ContextType = MyContext, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = ResolversObject<{
-  enrichSentence?: Resolver<ResolversTypes['Sentence'], ParentType, ContextType, RequireFields<MutationEnrichSentenceArgs, 'id' | 'nuance'>>;
+  enrichSentence?: Resolver<ResolversTypes['Sentence'], ParentType, ContextType, RequireFields<MutationEnrichSentenceArgs, 'id' | 'payload'>>;
   ingestSentence?: Resolver<ResolversTypes['Sentence'], ParentType, ContextType, RequireFields<MutationIngestSentenceArgs, 'content' | 'noteId' | 'sequence'>>;
 }>;
 
@@ -237,6 +246,7 @@ export type QueryResolvers<ContextType = MyContext, ParentType extends Resolvers
 }>;
 
 export type RelationshipResolvers<ContextType = MyContext, ParentType extends ResolversParentTypes['Relationship'] = ResolversParentTypes['Relationship']> = ResolversObject<{
+  description?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   isCrossSubject?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   target?: Resolver<ResolversTypes['Sentence'], ParentType, ContextType>;
   type?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
@@ -249,6 +259,7 @@ export type SentenceResolvers<ContextType = MyContext, ParentType extends Resolv
   createdAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   enrichmentData?: Resolver<Maybe<ResolversTypes['EnrichmentData']>, ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  network?: Resolver<Maybe<Array<ResolversTypes['Sentence']>>, ParentType, ContextType>;
   noteId?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   relationships?: Resolver<Maybe<Array<ResolversTypes['Relationship']>>, ParentType, ContextType>;
   sequence?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
