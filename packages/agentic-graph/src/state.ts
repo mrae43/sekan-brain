@@ -37,6 +37,10 @@ export const RefineryState = Annotation.Root({
   
   // The core meaning provided manually by you (The anchor for the AI)
   userNuance: Annotation<string>, 
+  userRelationships: Annotation<ScrapedRelationship[]>({
+    reducer: (currentState, updateValue) => updateValue,
+    default: () => [],
+  }),
 
   // ==========================================
   // 2. RETRIEVAL STATE (Populated by retrieve.ts)
