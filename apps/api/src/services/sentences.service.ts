@@ -1,6 +1,6 @@
 import { Types } from 'mongoose';
 import { Sentence, SentenceDocument } from '../models/sentence';
-import { RelationshipInput } from '../graphql/__generated__/types';
+import { EnrichmentPayload } from '../graphql/__generated__/types';
 
 export class SentenceService {
   /**
@@ -24,26 +24,39 @@ export class SentenceService {
   /**
    * Refinement: Adds user nuance, links relationships, and promotes to 'brain'.
    */
-  static async enrich(
-    id: string, 
-    nuance: string, 
-    relationships: RelationshipInput[] = []
+  static async enrichSentence(
+    id: string,
+    payload: EnrichmentPayload
   ): Promise<SentenceDocument> {
     if (!Types.ObjectId.isValid(id)) {
       throw new Error(`Invalid Sentence ID format: ${id}`);
     }
+  
     const doc = await Sentence.findById(id);
     if (!doc) throw new Error("Sentence node not found for enrichment");
 
-    // Use your instance method
-    doc.enrich(nuance, relationships);
-    
-    // Explicitly promote to brain stage for RAG readiness
+    const metadataMap = new Map(Object.entries(payload.metadata || {}));
+
+    // 1. Update the document's enrichment data directly
+    doc.enrichmentData = {
+      userNuance: payload.userNuance,
+      semanticRole: payload.semanticRole || "Unassigned",
+      tags: payload.tags || [],
+      metadata: metadataMap
+    };
+
+    // 2. Handle Relationships 
+    // (Assuming doc.enrich handles pushing relationships into the array)
+    // If doc.enrich also sets the nuance, you might need to adjust it or just let it run.
+    if (typeof doc.enrich === 'function') {
+      doc.enrich(payload.userNuance, payload.relationships || []);
+    }
+
+    // 3. Explicitly promote to brain stage for RAG readiness
     doc.stage = 'brain';
-    
+  
     return await doc.save();
   }
-
   /**
    * Retrieval: Get the expanded graph network for a specific node.
    */

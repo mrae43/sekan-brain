@@ -29,7 +29,7 @@ export const resolvers: Resolvers = {
     Mutation: {
         ingestSentence: async (_, args) => await SentenceService.ingest(args),
         
-        enrichSentence: async (_, { id, nuance, relationships }) => 
-            await SentenceService.enrich(id, nuance, relationships || [])
+        enrichSentence: async (_, { id, payload }) => 
+            await SentenceService.enrichSentence(id, payload)
     }
 };
