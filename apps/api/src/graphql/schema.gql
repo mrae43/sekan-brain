@@ -56,9 +56,16 @@ type Mutation {
 
   enrichSentence(
     id: ID!, 
-    nuance: String!, 
-    relationships: [RelationshipInput!]
+    payload: EnrichmentPayload!
   ): Sentence!
+}
+
+input EnrichmentPayload {
+  userNuance: String!
+  semanticRole: String
+  tags: [String!]
+  metadata: JSON
+  relationships: [RelationshipInput!]
 }
 
 input RelationshipInput {
