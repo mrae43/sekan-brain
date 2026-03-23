@@ -61,7 +61,10 @@ type Mutation {
 }
 
 input EnrichmentPayload {
-  nuance: String!
+  userNuance: String!
+  semanticRole: String
+  tags: [String!]
+  metadata: JSON
   relationships: [RelationshipInput!]
 }
 

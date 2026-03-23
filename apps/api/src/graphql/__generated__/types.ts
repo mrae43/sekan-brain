@@ -29,8 +29,11 @@ export type EnrichmentData = {
 };
 
 export type EnrichmentPayload = {
-  nuance: Scalars['String']['input'];
+  metadata?: InputMaybe<Scalars['JSON']['input']>;
   relationships?: InputMaybe<Array<RelationshipInput>>;
+  semanticRole?: InputMaybe<Scalars['String']['input']>;
+  tags?: InputMaybe<Array<Scalars['String']['input']>>;
+  userNuance: Scalars['String']['input'];
 };
 
 export type Mutation = {
