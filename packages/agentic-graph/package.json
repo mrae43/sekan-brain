@@ -11,8 +11,7 @@
     "@langchain/core": "^1.1.35",
     "@langchain/langgraph": "^1.2.5",
     "@langchain/openai": "^1.1.15",
-    "@repo/db": "workspace:*",
-    "@repo/types": "workspace:*"
+    "@repo/api": "workspace:*"
   },
   "devDependencies": {
     "@repo/typescript-config": "workspace:*",
