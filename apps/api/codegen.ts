@@ -11,7 +11,7 @@ const config: CodegenConfig = {
         useIndexSignature: true,
         maybeValue: 'T | null | undefined',
         mappers: {
-          Sentence: '../../models/sentence#SentenceDocument',
+          ThoughtNode: '../../models/sentence#ThoughtNodeDocument',
         },
       },
     },
