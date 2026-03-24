@@ -1,77 +1,95 @@
 scalar JSON
 
-enum SentenceStage {
-  garbage
-  resonance
-  brain
+# 1. Organic Data Lifecycle Stages
+enum CognitiveStage {
+  GARBAGE     # Raw "aha" moment, dumped without structure
+  RESONATING  # In transition: LLM generated context, waiting for human validation
+  BRAIN       # Validated, fully contextualized, crystallized for deep retrieval
 }
 
-type EnrichmentData {
-  userNuance: String
-  semanticRole: String
+# 2. Differentiating Human Intent vs. LLM Generation
+type ContextData {
+  userNuance: String          # Human input to strengthen the context
+  llmGeneratedContext: String # LLM's population of similar contexts/scenarios
+  semanticRole: String        # e.g., "Problem", "Solution", "Observation"
   tags: [String!]
   metadata: JSON
 }
 
+# 3. Graph Edges (Relationships)
 type Relationship {
-  target: Sentence!
-  type: String!
-  weight: Float!
-  isCrossSubject: Boolean!
-  description: String
+  targetId: ID!
+  type: String!               # e.g., "SUPPORTS", "CONTRADICTS", "RELATES_TO"
+  weight: Float!              # Strength of the resonance/connection
+  isCrossSubject: Boolean!    # True if connecting entirely different contexts
+  explanation: String         # Why did the LLM/Human connect these? (Agentic insight)
 }
 
-type Sentence {
+# 4. Renamed "Sentence" to "ThoughtNode" to reflect the essence of the brain
+type ThoughtNode {
   id: ID!
-  content: String!
-  noteId: ID!
-  contextId: ID
-  subject: String
-  sequence: Int!
-  stage: SentenceStage!
-  enrichmentData: EnrichmentData
+  content: String!            # The core thought/dump
+  subject: String             # High-level category (optional initially)
+  stage: CognitiveStage!
+  
+  context: ContextData
   relationships: [Relationship!]
+  
   createdAt: String!
   updatedAt: String!
-  
-  network: [Sentence!] 
+}
+
+# 5. Graph RAG Specific Payload (For Visual Node UI)
+type GraphResponse {
+  nodes:[ThoughtNode!]!
+  edges: [GraphEdge!]!
+  aiSynthesis: String         # LLM generated summary connecting the dots of the retrieved graph
+}
+
+# Flat edge structure makes frontend Graph visualization (D3.js, React Flow) much easier
+type GraphEdge {
+  sourceId: ID!
+  targetId: ID!
+  type: String!
+  weight: Float!
 }
 
 type Query {
-  getSentence(id: ID!): Sentence
+  # The Agentic RAG Trigger: User queries a vague memory or problem
+  # Triggers vector search + graph traversal, returns AI synthesis and the visual graph
+  querySecondBrain(prompt: String!): GraphResponse!
   
-  findCrossSubjectResonance(contextId: ID!, currentSubject: String!): [Sentence!]
-
-  getBrainContext(startIds: [ID!]!): [Sentence!]
+  # For exploring/visualizing a specific context cluster
+  expandThoughtGraph(nodeId: ID!, depth: Int = 1): GraphResponse!
+  
+  # Inbox for Human-in-the-loop: Fetch items waiting to be enriched/validated
+  getPendingValidations: [ThoughtNode!]!
 }
 
 type Mutation {
-  ingestSentence(
-    content: String!, 
-    noteId: ID!, 
-    sequence: Int!, 
-    contextId: ID, 
-    subject: String
-  ): Sentence!
+  # Stage 1: Frictionless Dumping (Defaults to GARBAGE stage)
+  captureAhaMoment(content: String!, subject: String): ThoughtNode!
 
-  enrichSentence(
+  # Stage 2: AI + Human Enrichment (Moves to RESONATING stage)
+  # Called when the user views the garbage and adds context, triggering the LLM to find links
+  enrichThought(
     id: ID!, 
-    payload: EnrichmentPayload!
-  ): Sentence!
-}
+    userNuance: String!, 
+    semanticRole: String
+  ): ThoughtNode!
 
-input EnrichmentPayload {
-  userNuance: String!
-  semanticRole: String
-  tags: [String!]
-  metadata: JSON
-  relationships: [RelationshipInput!]
+  # Stage 3: Validation (Moves to BRAIN stage)
+  # The human approves the LLM connections and nuance
+  promoteToBrain(
+    id: ID!,
+    approvedRelationships: [RelationshipInput!]
+  ): ThoughtNode!
 }
 
 input RelationshipInput {
-  target: ID!
+  targetId: ID!
   type: String!
   weight: Float
   isCrossSubject: Boolean
-  description: String
+  explanation: String
 }
