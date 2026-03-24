@@ -1,6 +1,6 @@
 import { Types } from 'mongoose';
 import { GraphEdge, GraphResponse, RelationshipInput } from '../graphql/__generated__/types';
-import { ThoughtNode } from '../models/sentence';
+import { ThoughtNode } from '../models/thoughtNode/model';
 import { EmbeddingService, LLMService } from './llm.service';
 
 export class ThoughtNodeService {

@@ -40,7 +40,7 @@ export const thoughtNodeSchema = new Schema<IThoughtNode, IThoughtNodeModel, ITh
   
   // 6. Knowledge Graph Relationships (The Connective Tissue)
   relationships:[{
-    targetId: { type: Schema.Types.ObjectId, ref: 'ThoughtNode', index: true, required: true },
+    targetId: { type: Schema.Types.ObjectId, ref: 'ThoughtNode', required: true },
     type: { 
       type: String, 
       required: true 
