@@ -6,7 +6,7 @@ import { ApolloServer } from '@apollo/server';
 import { expressMiddleware } from '@as-integrations/express5';
 import { connectDB } from './lib/db';  
 import { ENV } from './config/env';
-import { resolvers } from './graphql/resolvers/sentences';
+import { resolvers } from './graphql/resolvers/thoughts';
 import { errorHandler } from './middleware/error.handler';
 
 const typeDefs = readFileSync(path.join(__dirname, 'graphql', 'schema.gql'), 'utf-8');
