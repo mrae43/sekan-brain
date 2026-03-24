@@ -7,12 +7,8 @@ const config: CodegenConfig = {
     "src/graphql/__generated__/types.ts": {
       plugins: ["typescript", "typescript-resolvers"],
       config: {
-        contextType: "../../types/context#MyContext",
         useIndexSignature: true,
         maybeValue: 'T | null | undefined',
-        mappers: {
-          ThoughtNode: '../../models/sentence#ThoughtNodeDocument',
-        },
       },
     },
   },
