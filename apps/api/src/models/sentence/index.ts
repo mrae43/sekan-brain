@@ -1,13 +1,15 @@
-import { model } from 'mongoose';
-import { ISentence, ISentenceModel } from './types';
-import { sentenceSchema } from './schema';
-import * as methods from './methods';
-import * as statics from './statics';
+import { ThoughtNodeDocument } from './types';
 
-// Attach logic
-sentenceSchema.method(methods);
-sentenceSchema.static(statics);
-
-export const Sentence = model<ISentence, ISentenceModel>('Sentence', sentenceSchema);
-
-export * from './types';
+/**
+ * Handle the "Trigger Enrichment" stage
+ */
+export function enrich(
+  this: ThoughtNodeDocument,
+  nuance: string, 
+  relationships: any[]
+): ThoughtNodeDocument {
+  this.context.userNuance = nuance;
+  this.relationships.push(...relationships);
+  this.stage = 'BRAIN';
+  return this;
+}

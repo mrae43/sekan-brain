@@ -1,40 +1,73 @@
 import { Types, Model, HydratedDocument } from 'mongoose';
 
-export interface ISentence {
+// 1. Aligning the stage with the GraphQL CognitiveStage enum
+export type CognitiveStage = 'GARBAGE' | 'RESONATING' | 'BRAIN';
+
+// 2. Extracted sub-documents for cleaner typing and reusability
+export interface IContextData {
+  userNuance?: string;
+  llmGeneratedContext?: string; 
+  semanticRole?: string;
+  tags: string[];
+  metadata: Map<string, any>;   
+}
+
+export interface IRelationship {
+  targetId: Types.ObjectId;     
+  type: string;
+  weight: number;
+  isCrossSubject: boolean;
+  explanation?: string;         
+}
+
+// 3. The Core Entity (formerly ISentence)
+export interface IThoughtNode {
   content: string;
-  noteId: Types.ObjectId;
+  
+  // These are optional now to support "frictionless capture"
+  // A raw "aha" moment might not belong to a specific note or sequence yet.
+  noteId?: Types.ObjectId;      
   contextId?: Types.ObjectId;
+  sequence?: number;            
+  
   subject?: string;
-  sequence: number;
-  stage: 'garbage' | 'resonance' | 'brain';
-  embedding?: Buffer;
-  enrichmentData: {
-    userNuance?: string;
-    semanticRole?: string;
-    tags: string[];
-    metadata: Map<string, any>;
-  };
-  relationships: {
-    target: Types.ObjectId;
-    type: string;
-    weight: number;
-    isCrossSubject: boolean;
-  }[];
+  stage: CognitiveStage;
+  
+  // Used for Vector Search / RAG (Note: If using MongoDB Atlas Vector Search, 
+  // you might eventually change this to `number[]`, but Buffer is fine if using pgvector/others)
+  embedding?: Buffer;           
+  
+  context: IContextData;        
+  relationships: IRelationship[];
 }
 
-export interface ISentenceMethods {
-  enrich(nuance: string, relationships: any[]): HydratedDocument<ISentence, ISentenceMethods>;
+// 4. Instance Methods (Mapped to your Mutation lifecycle)
+export interface IThoughtNodeMethods {
+  enrich(
+    userNuance: string, 
+    semanticRole?: string, 
+    llmGeneratedContext?: string
+  ): Promise<HydratedDocument<IThoughtNode, IThoughtNodeMethods>>;
+
+  promoteToBrain(
+    approvedRelationships: IRelationship[]
+  ): Promise<HydratedDocument<IThoughtNode, IThoughtNodeMethods>>;
 }
 
-export type SentenceDocument = HydratedDocument<ISentence, ISentenceMethods>;
+export type ThoughtNodeDocument = HydratedDocument<IThoughtNode, IThoughtNodeMethods>;
 
-export interface ISentenceModel extends Model<ISentence, {}, ISentenceMethods> {
+// 5. Static Model Methods (Graph RAG Entry Points)
+export interface IThoughtNodeModel extends Model<IThoughtNode, {}, IThoughtNodeMethods> {
+  // Still highly relevant: Used when LLM identifies a resonance opportunity
   findCrossSubjectResonance(
     contextId: Types.ObjectId | string, 
     currentSubject: string
-  ): Promise<SentenceDocument[]>;
+  ): Promise<ThoughtNodeDocument[]>;
   
-  getBrainContext(
-    startIds: (Types.ObjectId | string)[]
-  ): Promise<SentenceDocument[]>;
+  // Renamed from getBrainContext to reflect Graph traversal
+  // This will handle the $graphLookup aggregation in Mongoose
+  expandThoughtGraph(
+    startIds: (Types.ObjectId | string)[],
+    depth: number
+  ): Promise<ThoughtNodeDocument[]>;
 }

@@ -1,5 +1,5 @@
 import { GraphQLResolveInfo, GraphQLScalarType, GraphQLScalarTypeConfig } from 'graphql';
-import { SentenceDocument } from '../../models/sentence';
+import { ThoughtNodeDocument } from '../../models/sentence';
 import { MyContext } from '../../types/context';
 export type Maybe<T> = T | null | undefined;
 export type InputMaybe<T> = T | null | undefined;
@@ -8,6 +8,7 @@ export type MakeOptional<T, K extends keyof T> = Omit<T, K> & { [SubKey in K]?: 
 export type MakeMaybe<T, K extends keyof T> = Omit<T, K> & { [SubKey in K]: Maybe<T[SubKey]> };
 export type MakeEmpty<T extends { [key: string]: unknown }, K extends keyof T> = { [_ in K]?: never };
 export type Incremental<T> = T | { [P in keyof T]?: P extends ' $fragmentName' | '__typename' ? T[P] : never };
+export type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>;
 export type RequireFields<T, K extends keyof T> = Omit<T, K> & { [P in K]-?: NonNullable<T[P]> };
 /** All built-in and custom scalars, mapped to their actual values */
 export type Scalars = {
@@ -201,7 +202,7 @@ export type ResolversTypes = ResolversObject<{
   ContextData: ResolverTypeWrapper<ContextData>;
   Float: ResolverTypeWrapper<Scalars['Float']['output']>;
   GraphEdge: ResolverTypeWrapper<GraphEdge>;
-  GraphResponse: ResolverTypeWrapper<GraphResponse>;
+  GraphResponse: ResolverTypeWrapper<Omit<GraphResponse, 'nodes'> & { nodes: Array<ResolversTypes['ThoughtNode']> }>;
   ID: ResolverTypeWrapper<Scalars['ID']['output']>;
   Int: ResolverTypeWrapper<Scalars['Int']['output']>;
   JSON: ResolverTypeWrapper<Scalars['JSON']['output']>;
@@ -210,7 +211,7 @@ export type ResolversTypes = ResolversObject<{
   Relationship: ResolverTypeWrapper<Relationship>;
   RelationshipInput: RelationshipInput;
   String: ResolverTypeWrapper<Scalars['String']['output']>;
-  ThoughtNode: ResolverTypeWrapper<ThoughtNode>;
+  ThoughtNode: ResolverTypeWrapper<ThoughtNodeDocument>;
 }>;
 
 /** Mapping between all available schema types and the resolvers parents */
@@ -219,7 +220,7 @@ export type ResolversParentTypes = ResolversObject<{
   ContextData: ContextData;
   Float: Scalars['Float']['output'];
   GraphEdge: GraphEdge;
-  GraphResponse: GraphResponse;
+  GraphResponse: Omit<GraphResponse, 'nodes'> & { nodes: Array<ResolversParentTypes['ThoughtNode']> };
   ID: Scalars['ID']['output'];
   Int: Scalars['Int']['output'];
   JSON: Scalars['JSON']['output'];
@@ -228,7 +229,7 @@ export type ResolversParentTypes = ResolversObject<{
   Relationship: Relationship;
   RelationshipInput: RelationshipInput;
   String: Scalars['String']['output'];
-  ThoughtNode: ThoughtNode;
+  ThoughtNode: ThoughtNodeDocument;
 }>;
 
 export type ContextDataResolvers<ContextType = MyContext, ParentType extends ResolversParentTypes['ContextData'] = ResolversParentTypes['ContextData']> = ResolversObject<{

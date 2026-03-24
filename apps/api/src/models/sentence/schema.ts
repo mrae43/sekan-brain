@@ -1,48 +1,53 @@
 import { Schema } from 'mongoose';
-import { ISentence, ISentenceModel, ISentenceMethods } from './types';
+import { IThoughtNode, IThoughtNodeModel, IThoughtNodeMethods } from './types';
 
-export const sentenceSchema = new Schema<ISentence, ISentenceModel, ISentenceMethods>({
+export const thoughtNodeSchema = new Schema<IThoughtNode, IThoughtNodeModel, IThoughtNodeMethods>({
   content: { type: String, required: true },
-  noteId: { type: Schema.Types.ObjectId, ref: 'Note', required: true, index: true },
   
-  // 1. Context Rooting & Subject Grouping
+  // 1. Frictionless Capture Setup
+  // noteId and sequence are now OPTIONAL. A raw "aha" moment 
+  // might not belong to a specific note or sequence initially.
+  noteId: { type: Schema.Types.ObjectId, ref: 'Note', required: false, index: true },
+  sequence: { type: Number, required: false },
+  
+  // 2. Context Rooting & Subject Grouping
   contextId: { type: Schema.Types.ObjectId, ref: 'Context', index: true }, 
   subject: { type: String, index: true }, // e.g., "Dating Game" or "Blockchain"
-  sequence: { type: Number, required: true },
   
-  // 2. Lifecycle Management (The Refinery Pipeline)
+  // 3. Lifecycle Management (The Cognitive Pipeline)
   stage: { 
     type: String, 
-    enum: ['garbage', 'resonance', 'brain'], 
-    default: 'garbage', 
+    enum:['GARBAGE', 'RESONATING', 'BRAIN'], 
+    default: 'GARBAGE', 
     index: true 
   },
 
-  // 3. Vector Optimization
+  // 4. Vector Optimization (For Vector Search / RAG)
   embedding: { 
     type: Buffer, 
     required: false,
     select: false 
   },
   
-  // 4. Enrichment & Semantic Nuance
-  enrichmentData: {
+  // 5. Enrichment & Semantic Nuance (Formerly enrichmentData)
+  context: {
     userNuance: { type: String },
+    llmGeneratedContext: { type: String }, 
     semanticRole: { type: String },
     tags: [{ type: String, index: true }],
-    metadata: { type: Map, of: Schema.Types.Mixed }
+    metadata: { type: Map, of: Schema.Types.Mixed, default: {} } 
   },
   
-  // 5. Knowledge Graph Relationships (The Connective Tissue)
-  relationships: [{
-    target: { type: Schema.Types.ObjectId, ref: 'Sentence', index: true },
+  // 6. Knowledge Graph Relationships (The Connective Tissue)
+  relationships:[{
+    targetId: { type: Schema.Types.ObjectId, ref: 'ThoughtNode', index: true, required: true },
     type: { 
       type: String, 
       required: true 
     },
     weight: { type: Number, default: 1 },
     isCrossSubject: { type: Boolean, default: false },
-    description: { type: String }
+    explanation: { type: String } 
   }]
 }, {
   timestamps: true,
@@ -51,5 +56,12 @@ export const sentenceSchema = new Schema<ISentence, ISentenceModel, ISentenceMet
 });
 
 // --- Indexing for Performance ---
-sentenceSchema.index({ contextId: 1, subject: 1 });
-sentenceSchema.index({ 'relationships.type': 1 });
+// Standard compound index for scoping down queries
+thoughtNodeSchema.index({ contextId: 1, subject: 1 });
+
+// Optimize relationship queries (crucial for Graph RAG traversals in MongoDB)
+thoughtNodeSchema.index({ 'relationships.type': 1 });
+thoughtNodeSchema.index({ 'relationships.targetId': 1 }); 
+
+// Consider adding a text index on content if you want hybrid search (Vector + Keyword)
+// thoughtNodeSchema.index({ content: 'text', subject: 'text' });

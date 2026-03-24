@@ -1,49 +1,55 @@
 import { Types } from 'mongoose';
-import { ISentenceModel, SentenceDocument } from './types';
+import { IThoughtNodeModel, ThoughtNodeDocument } from './types';
 
 /**
  * Horizontal Synthesis (Cross-subject discovery)
- * Find sentences in OTHER subjects that share the same contextId
+ * Find ThoughtNodes in OTHER subjects that share the same contextId
  */
 export async function findCrossSubjectResonance(
-  this: ISentenceModel,
+  this: IThoughtNodeModel,
   contextId: Types.ObjectId | string, 
   currentSubject: string
-): Promise<SentenceDocument[]> {
+): Promise<ThoughtNodeDocument[]> {
   return this.find({
     contextId,
     subject: { $ne: currentSubject },
-    stage: 'brain'
+    stage: 'BRAIN' 
   }).limit(10);
 }
 
 /**
  * Weighted Graph Traversal for RAG
+ * Triggers a recursive $graphLookup to fetch interconnected thoughts
  */
-export async function getBrainContext(
-  this: ISentenceModel,
-  startIds: (Types.ObjectId | string)[]
-): Promise<SentenceDocument[]> {
+export async function expandThoughtGraph(
+  this: IThoughtNodeModel,
+  startIds: (Types.ObjectId | string)[],
+  depth: number = 1 
+): Promise<ThoughtNodeDocument[]> {
+  
+  // Mongoose aggregations do not auto-cast ObjectIds in $in arrays
+  const objectIds = startIds.map(id => typeof id === 'string' ? new Types.ObjectId(id) : id);
+
   return this.aggregate([
-    { $match: { _id: { $in: startIds }, stage: 'brain' } },
+    // 1. Find the starting nodes, ensuring they are validated thoughts
+    { $match: { _id: { $in: objectIds }, stage: 'BRAIN' } },
+    
+    // 2. Traverse the knowledge graph
     {
       $graphLookup: {
-        from: 'sentences',
-        startWith: '$relationships.target',
-        connectFromField: 'relationships.target',
+        from: 'thoughtnodes', // Assumes Mongoose default pluralization of 'ThoughtNode'
+        startWith: '$relationships.targetId', // Updated to targetId
+        connectFromField: 'relationships.targetId', // Updated to targetId
         connectToField: '_id',
-        maxDepth: 3,
+        maxDepth: depth, // Use dynamic depth passed from GraphQL
         as: 'network',
-        restrictSearchWithMatch: { stage: 'brain' }
+        restrictSearchWithMatch: { stage: 'BRAIN' } // Only pull in validated connections
       }
-    },
-    // Filter out connections with negative weights if doing a "positive" search
-    { $addFields: { 
-        network: { $filter: { 
-          input: "$network", 
-          as: "item", 
-          cond: { $gt: ["$$item.weight", -1] } 
-        }}
-    }}
+    }
+    
+    // Note: The previous logic filtering by `weight` inside the aggregation pipeline 
+    // was removed. `$graphLookup` returns full documents, not edge definitions. 
+    // You should filter low-weight/negative edges in the Service layer when 
+    // constructing the `{ nodes, edges }` flat GraphResponse for the frontend.
   ]);
 }
