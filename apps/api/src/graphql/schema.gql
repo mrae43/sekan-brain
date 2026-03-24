@@ -25,8 +25,8 @@ type Relationship {
   explanation: String         # Why did the LLM/Human connect these? (Agentic insight)
 }
 
-# 4. Renamed "Sentence" to "ThoughtNode" to reflect the essence of the brain
-type ThoughtNode {
+# 4. Renamed "Sentence" to "GraphNode" to reflect the essence of the brain
+type GraphNode {
   id: ID!
   content: String!            # The core thought/dump
   subject: String             # High-level category (optional initially)
@@ -41,7 +41,7 @@ type ThoughtNode {
 
 # 5. Graph RAG Specific Payload (For Visual Node UI)
 type GraphResponse {
-  nodes:[ThoughtNode!]!
+  nodes:[GraphNode!]!
   edges: [GraphEdge!]!
   aiSynthesis: String         # LLM generated summary connecting the dots of the retrieved graph
 }
@@ -57,18 +57,18 @@ type GraphEdge {
 type Query {
   # The Agentic RAG Trigger: User queries a vague memory or problem
   # Triggers vector search + graph traversal, returns AI synthesis and the visual graph
-  querySecondBrain(prompt: String!): GraphResponse!
+  findResonatingThoughts(query: String!): GraphResponse!
   
   # For exploring/visualizing a specific context cluster
   expandThoughtGraph(nodeId: ID!, depth: Int = 1): GraphResponse!
   
   # Inbox for Human-in-the-loop: Fetch items waiting to be enriched/validated
-  getPendingValidations: [ThoughtNode!]!
+  getPendingValidations: [GraphNode!]!
 }
 
 type Mutation {
   # Stage 1: Frictionless Dumping (Defaults to GARBAGE stage)
-  captureAhaMoment(content: String!, subject: String): ThoughtNode!
+  captureAhaMoment(content: String!, subject: String): GraphNode!
 
   # Stage 2: AI + Human Enrichment (Moves to RESONATING stage)
   # Called when the user views the garbage and adds context, triggering the LLM to find links
@@ -76,14 +76,14 @@ type Mutation {
     id: ID!, 
     userNuance: String!, 
     semanticRole: String
-  ): ThoughtNode!
+  ): GraphNode!
 
   # Stage 3: Validation (Moves to BRAIN stage)
   # The human approves the LLM connections and nuance
   promoteToBrain(
     id: ID!,
     approvedRelationships: [RelationshipInput!]
-  ): ThoughtNode!
+  ): GraphNode!
 }
 
 input RelationshipInput {

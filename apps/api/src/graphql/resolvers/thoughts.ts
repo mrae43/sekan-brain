@@ -7,14 +7,13 @@ export const resolvers: Resolvers = {
     JSON: GraphQLJSON,
 
     Query: {
-        // Agentic RAG Trigger: Uses LLM to parse the prompt, runs vector/graph search, 
-        // and returns a synthesized subgraph.
-        querySecondBrain: async (_, { prompt }) => {
-            return await ThoughtNodeService.querySecondBrain(prompt);
+        // Agentic RAG Trigger: runs vector/graph search, returns a synthesized subgraph.
+        findResonatingThoughts: async (_, { query }: { query: string }) => {
+            return await ThoughtNodeService.findResonatingThoughts(query);
         },
         
         // Graph visualization entry point for a specific node
-        expandThoughtGraph: async (_, { nodeId, depth }) => {
+        expandThoughtGraph: async (_, { nodeId, depth }: { nodeId: string, depth: number }) => {
             // Provide a default depth of 1 if not specified
             return await ThoughtNodeService.expandGraph(nodeId, depth ?? 1);
         },

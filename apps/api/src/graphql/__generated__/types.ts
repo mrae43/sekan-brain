@@ -8,7 +8,6 @@ export type MakeOptional<T, K extends keyof T> = Omit<T, K> & { [SubKey in K]?: 
 export type MakeMaybe<T, K extends keyof T> = Omit<T, K> & { [SubKey in K]: Maybe<T[SubKey]> };
 export type MakeEmpty<T extends { [key: string]: unknown }, K extends keyof T> = { [_ in K]?: never };
 export type Incremental<T> = T | { [P in keyof T]?: P extends ' $fragmentName' | '__typename' ? T[P] : never };
-export type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>;
 export type RequireFields<T, K extends keyof T> = Omit<T, K> & { [P in K]-?: NonNullable<T[P]> };
 /** All built-in and custom scalars, mapped to their actual values */
 export type Scalars = {
@@ -43,18 +42,30 @@ export type GraphEdge = {
   weight: Scalars['Float']['output'];
 };
 
+export type GraphNode = {
+  __typename?: 'GraphNode';
+  content: Scalars['String']['output'];
+  context?: Maybe<ContextData>;
+  createdAt: Scalars['String']['output'];
+  id: Scalars['ID']['output'];
+  relationships?: Maybe<Array<Relationship>>;
+  stage: CognitiveStage;
+  subject?: Maybe<Scalars['String']['output']>;
+  updatedAt: Scalars['String']['output'];
+};
+
 export type GraphResponse = {
   __typename?: 'GraphResponse';
   aiSynthesis?: Maybe<Scalars['String']['output']>;
   edges: Array<GraphEdge>;
-  nodes: Array<ThoughtNode>;
+  nodes: Array<GraphNode>;
 };
 
 export type Mutation = {
   __typename?: 'Mutation';
-  captureAhaMoment: ThoughtNode;
-  enrichThought: ThoughtNode;
-  promoteToBrain: ThoughtNode;
+  captureAhaMoment: GraphNode;
+  enrichThought: GraphNode;
+  promoteToBrain: GraphNode;
 };
 
 
@@ -79,7 +90,7 @@ export type MutationPromoteToBrainArgs = {
 export type Query = {
   __typename?: 'Query';
   expandThoughtGraph: GraphResponse;
-  getPendingValidations: Array<ThoughtNode>;
+  getPendingValidations: Array<GraphNode>;
   querySecondBrain: GraphResponse;
 };
 
@@ -109,18 +120,6 @@ export type RelationshipInput = {
   targetId: Scalars['ID']['input'];
   type: Scalars['String']['input'];
   weight?: InputMaybe<Scalars['Float']['input']>;
-};
-
-export type ThoughtNode = {
-  __typename?: 'ThoughtNode';
-  content: Scalars['String']['output'];
-  context?: Maybe<ContextData>;
-  createdAt: Scalars['String']['output'];
-  id: Scalars['ID']['output'];
-  relationships?: Maybe<Array<Relationship>>;
-  stage: CognitiveStage;
-  subject?: Maybe<Scalars['String']['output']>;
-  updatedAt: Scalars['String']['output'];
 };
 
 export type WithIndex<TObject> = TObject & Record<string, any>;
@@ -202,7 +201,8 @@ export type ResolversTypes = ResolversObject<{
   ContextData: ResolverTypeWrapper<ContextData>;
   Float: ResolverTypeWrapper<Scalars['Float']['output']>;
   GraphEdge: ResolverTypeWrapper<GraphEdge>;
-  GraphResponse: ResolverTypeWrapper<Omit<GraphResponse, 'nodes'> & { nodes: Array<ResolversTypes['ThoughtNode']> }>;
+  GraphNode: ResolverTypeWrapper<GraphNode>;
+  GraphResponse: ResolverTypeWrapper<GraphResponse>;
   ID: ResolverTypeWrapper<Scalars['ID']['output']>;
   Int: ResolverTypeWrapper<Scalars['Int']['output']>;
   JSON: ResolverTypeWrapper<Scalars['JSON']['output']>;
@@ -211,7 +211,6 @@ export type ResolversTypes = ResolversObject<{
   Relationship: ResolverTypeWrapper<Relationship>;
   RelationshipInput: RelationshipInput;
   String: ResolverTypeWrapper<Scalars['String']['output']>;
-  ThoughtNode: ResolverTypeWrapper<ThoughtNodeDocument>;
 }>;
 
 /** Mapping between all available schema types and the resolvers parents */
@@ -220,7 +219,8 @@ export type ResolversParentTypes = ResolversObject<{
   ContextData: ContextData;
   Float: Scalars['Float']['output'];
   GraphEdge: GraphEdge;
-  GraphResponse: Omit<GraphResponse, 'nodes'> & { nodes: Array<ResolversParentTypes['ThoughtNode']> };
+  GraphNode: GraphNode;
+  GraphResponse: GraphResponse;
   ID: Scalars['ID']['output'];
   Int: Scalars['Int']['output'];
   JSON: Scalars['JSON']['output'];
@@ -229,7 +229,6 @@ export type ResolversParentTypes = ResolversObject<{
   Relationship: Relationship;
   RelationshipInput: RelationshipInput;
   String: Scalars['String']['output'];
-  ThoughtNode: ThoughtNodeDocument;
 }>;
 
 export type ContextDataResolvers<ContextType = MyContext, ParentType extends ResolversParentTypes['ContextData'] = ResolversParentTypes['ContextData']> = ResolversObject<{
@@ -247,10 +246,21 @@ export type GraphEdgeResolvers<ContextType = MyContext, ParentType extends Resol
   weight?: Resolver<ResolversTypes['Float'], ParentType, ContextType>;
 }>;
 
+export type GraphNodeResolvers<ContextType = MyContext, ParentType extends ResolversParentTypes['GraphNode'] = ResolversParentTypes['GraphNode']> = ResolversObject<{
+  content?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  context?: Resolver<Maybe<ResolversTypes['ContextData']>, ParentType, ContextType>;
+  createdAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  relationships?: Resolver<Maybe<Array<ResolversTypes['Relationship']>>, ParentType, ContextType>;
+  stage?: Resolver<ResolversTypes['CognitiveStage'], ParentType, ContextType>;
+  subject?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  updatedAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+}>;
+
 export type GraphResponseResolvers<ContextType = MyContext, ParentType extends ResolversParentTypes['GraphResponse'] = ResolversParentTypes['GraphResponse']> = ResolversObject<{
   aiSynthesis?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   edges?: Resolver<Array<ResolversTypes['GraphEdge']>, ParentType, ContextType>;
-  nodes?: Resolver<Array<ResolversTypes['ThoughtNode']>, ParentType, ContextType>;
+  nodes?: Resolver<Array<ResolversTypes['GraphNode']>, ParentType, ContextType>;
 }>;
 
 export interface JsonScalarConfig extends GraphQLScalarTypeConfig<ResolversTypes['JSON'], any> {
@@ -258,14 +268,14 @@ export interface JsonScalarConfig extends GraphQLScalarTypeConfig<ResolversTypes
 }
 
 export type MutationResolvers<ContextType = MyContext, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = ResolversObject<{
-  captureAhaMoment?: Resolver<ResolversTypes['ThoughtNode'], ParentType, ContextType, RequireFields<MutationCaptureAhaMomentArgs, 'content'>>;
-  enrichThought?: Resolver<ResolversTypes['ThoughtNode'], ParentType, ContextType, RequireFields<MutationEnrichThoughtArgs, 'id' | 'userNuance'>>;
-  promoteToBrain?: Resolver<ResolversTypes['ThoughtNode'], ParentType, ContextType, RequireFields<MutationPromoteToBrainArgs, 'id'>>;
+  captureAhaMoment?: Resolver<ResolversTypes['GraphNode'], ParentType, ContextType, RequireFields<MutationCaptureAhaMomentArgs, 'content'>>;
+  enrichThought?: Resolver<ResolversTypes['GraphNode'], ParentType, ContextType, RequireFields<MutationEnrichThoughtArgs, 'id' | 'userNuance'>>;
+  promoteToBrain?: Resolver<ResolversTypes['GraphNode'], ParentType, ContextType, RequireFields<MutationPromoteToBrainArgs, 'id'>>;
 }>;
 
 export type QueryResolvers<ContextType = MyContext, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = ResolversObject<{
   expandThoughtGraph?: Resolver<ResolversTypes['GraphResponse'], ParentType, ContextType, RequireFields<QueryExpandThoughtGraphArgs, 'depth' | 'nodeId'>>;
-  getPendingValidations?: Resolver<Array<ResolversTypes['ThoughtNode']>, ParentType, ContextType>;
+  getPendingValidations?: Resolver<Array<ResolversTypes['GraphNode']>, ParentType, ContextType>;
   querySecondBrain?: Resolver<ResolversTypes['GraphResponse'], ParentType, ContextType, RequireFields<QueryQuerySecondBrainArgs, 'prompt'>>;
 }>;
 
@@ -277,25 +287,14 @@ export type RelationshipResolvers<ContextType = MyContext, ParentType extends Re
   weight?: Resolver<ResolversTypes['Float'], ParentType, ContextType>;
 }>;
 
-export type ThoughtNodeResolvers<ContextType = MyContext, ParentType extends ResolversParentTypes['ThoughtNode'] = ResolversParentTypes['ThoughtNode']> = ResolversObject<{
-  content?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  context?: Resolver<Maybe<ResolversTypes['ContextData']>, ParentType, ContextType>;
-  createdAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
-  relationships?: Resolver<Maybe<Array<ResolversTypes['Relationship']>>, ParentType, ContextType>;
-  stage?: Resolver<ResolversTypes['CognitiveStage'], ParentType, ContextType>;
-  subject?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  updatedAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-}>;
-
 export type Resolvers<ContextType = MyContext> = ResolversObject<{
   ContextData?: ContextDataResolvers<ContextType>;
   GraphEdge?: GraphEdgeResolvers<ContextType>;
+  GraphNode?: GraphNodeResolvers<ContextType>;
   GraphResponse?: GraphResponseResolvers<ContextType>;
   JSON?: GraphQLScalarType;
   Mutation?: MutationResolvers<ContextType>;
   Query?: QueryResolvers<ContextType>;
   Relationship?: RelationshipResolvers<ContextType>;
-  ThoughtNode?: ThoughtNodeResolvers<ContextType>;
 }>;
 
