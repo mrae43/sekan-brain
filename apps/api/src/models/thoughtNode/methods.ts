@@ -25,7 +25,7 @@ export async function enrich(
   }
   
   // 3. Move to transitionary stage
-  this.stage = 'RESONATING';
+  this.stage = 'BRAIN';
   
   // 4. Save and return the Hydrated Document
   return this.save();
