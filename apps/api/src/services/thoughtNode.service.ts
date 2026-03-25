@@ -1,7 +1,7 @@
-import { Types } from 'mongoose';
 import { GraphEdge, GraphResponse, RelationshipInput } from '../graphql/__generated__/types';
 import { ThoughtNode } from '../models/thoughtNode/model';
 import { EmbeddingService, LLMService } from './llm.service';
+import { ThoughtNodeDocument } from '../models/thoughtNode/types';
 
 export class ThoughtNodeService {
     // Queries
@@ -180,7 +180,18 @@ export class ThoughtNodeService {
     }
 
     static async getPendingValidations(): Promise<ThoughtNodeDocument[]> {
-        // Retrieve nodes where stage === 'RESONATING' or 'GARBAGE'
+      try {
+        const pendingNodes = await ThoughtNode.find({
+          stage: { $in: ['GARBAGE', 'RESONATING'] }
+        })
+        .sort({ stage: -1, createdAt: 1 })
+        .exec();
+
+        return pendingNodes;
+      } catch (error) {
+        console.error("Error fetching pending validations:", error);
+        throw new Error("Failed to retrieve the pending thought queue.");
+      }
     }
 
     // Mutations
