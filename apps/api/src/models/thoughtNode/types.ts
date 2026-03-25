@@ -39,6 +39,9 @@ export interface IThoughtNode {
   
   context: IContextData;        
   relationships: IRelationship[];
+
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 // 4. Instance Methods (Mapped to your Mutation lifecycle)
