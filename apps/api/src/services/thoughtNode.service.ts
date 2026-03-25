@@ -143,6 +143,24 @@ export class ThoughtNodeService {
       }
 
       const uniqueNodes = Array.from(nodeMap.values());
+
+      const edges: any[] = [];
+      
+      for (const node of uniqueNodes) {
+        if (node.relationships && Array.isArray(node.relationships)) {
+          for (const rel of node.relationships) {
+            const targetIdStr = rel.targetId.toString();
+            if (nodeMap.has(targetIdStr)) {
+              edges.push({
+                sourceId: node._id.toString(),
+                targetId: targetIdStr,
+                type: rel.type,
+                weight: rel.weight || 1.0
+              })
+            }
+          }
+        }
+      }
     }
 
     static async getPendingValidations(): Promise<ThoughtNodeDocument[]> {
