@@ -1,7 +1,7 @@
 import { Resolvers } from "../__generated__/types";
 import GraphQLJSON from 'graphql-type-json';
 import { ThoughtNodeService } from "../../services/thoughtNode.service"; 
-import { GraphNodeDocument } from "../../models/thoughtNode/types";
+import { GraphNodeDocument, IContextData } from "../../models/thoughtNode/types";
 
 export const resolvers: Resolvers = {
     // Custom scalar for JSON metadata
@@ -37,6 +37,20 @@ export const resolvers: Resolvers = {
             const date = parent.updatedAt || new Date();
             return date.toISOString();
         },
+    },
+
+    ContextData: {
+        metadata: (parent: IContextData): Record<string, any> => {
+            if (parent.metadata instanceof Map) {
+                return Object.fromEntries(parent.metadata)
+            }
+
+            return parent.metadata || {};
+        },
+
+        tags: (parent: IContextData): string[] => {
+            return parent.tags ||[];
+        }
     },
 
     Mutation: {
