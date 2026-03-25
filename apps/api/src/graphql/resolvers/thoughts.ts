@@ -25,6 +25,20 @@ export const resolvers: Resolvers = {
         }
     },
 
+    GraphNode: {
+        id: (parent) => parent._id?.toString() || parent.id,
+        createdAt: (parent) => {
+        return parent.createdAt instanceof Date 
+            ? parent.createdAt.toISOString() 
+            : new Date(parent.createdAt).toISOString();
+        },
+        updatedAt: (parent) => {
+        return parent.updatedAt instanceof Date 
+            ? parent.updatedAt.toISOString() 
+            : new Date(parent.updatedAt).toISOString();
+        },
+    },
+
     Mutation: {
         // Stage 1: Frictionless capture (Defaults to GARBAGE stage internally)
         captureAhaMoment: async (_, { content, subject }) => {
