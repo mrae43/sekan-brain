@@ -9,6 +9,11 @@ const config: CodegenConfig = {
       config: {
         useIndexSignature: true,
         maybeValue: 'T | null | undefined',
+        mappers: {
+          GraphNode: '../../models/thoughtNode/types#GraphNodeDocument',
+          GraphEdge: '../../models/thoughtNode/types#GraphEdgeDocument',
+          GraphResponse: '../../models/thoughtNode/types#GraphResponseDocument',
+        }
       },
     },
   },

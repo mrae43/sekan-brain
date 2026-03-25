@@ -1,11 +1,11 @@
-import { GraphEdge, GraphResponse, RelationshipInput } from '../graphql/__generated__/types';
+import { RelationshipInput } from '../graphql/__generated__/types';
 import { ThoughtNode } from '../models/thoughtNode/model';
 import { EmbeddingService, LLMService } from './llm.service';
-import { ThoughtNodeDocument } from '../models/thoughtNode/types';
+import { GraphNodeDocument, GraphEdgeDocument, GraphResponseDocument } from '../models/thoughtNode/types';
 
 export class ThoughtNodeService {
     // Queries
-    static async findResonatingThoughts(query: string): Promise<GraphResponse> {
+    static async findResonatingThoughts(query: string): Promise<GraphResponseDocument> {
       const queryEmbedding = await EmbeddingService.generateEmbedding(query);
       
       const seedNodes = await ThoughtNode.aggregate([
@@ -70,7 +70,7 @@ export class ThoughtNodeService {
       const finalNodes = Array.from(uniqueNodesMap.values());
 
       // STEP 3: Graph Construction (Mapping Nodes & Edges)
-      const edges: GraphEdge[] = [];
+      const edges: GraphEdgeDocument[] = [];
       const edgeDuplicationSet = new Set<string>();
 
       finalNodes.forEach(sourceNode => {
@@ -120,7 +120,7 @@ export class ThoughtNodeService {
         
     }
 
-    static async expandGraph(nodeId: string, depth: number): Promise<GraphResponse> {
+    static async expandGraph(nodeId: string, depth: number): Promise<GraphResponseDocument> {
       const results = await ThoughtNode.expandThoughtGraph([nodeId], depth);
 
       if (!results || results.length === 0) {
@@ -144,7 +144,7 @@ export class ThoughtNodeService {
 
       const uniqueNodes = Array.from(nodeMap.values());
 
-      const edges: any[] = [];
+      const edges: GraphEdgeDocument[] = [];
       
       for (const node of uniqueNodes) {
         if (node.relationships && Array.isArray(node.relationships)) {
@@ -162,24 +162,13 @@ export class ThoughtNodeService {
         }
       }
       
-      const formattedNodes = uniqueNodes.map((node) => ({
-        id: node._id.toString(),
-        content: node.content,
-        stage: node.stage,
-        subject: node.subject,
-        createdAt: node.createdAt?.toISOString(),
-        updatedAt: node.updatedAt?.toISOString(),
-        relationships: node.relationships || [],
-        context: node.context || {}
-      }))
-
       return {
-        nodes: formattedNodes,
+        nodes: uniqueNodes,
         edges: edges,
       }
     }
 
-    static async getPendingValidations(): Promise<ThoughtNodeDocument[]> {
+    static async getPendingValidations(): Promise<GraphNodeDocument[]> {
       try {
         const pendingNodes = await ThoughtNode.find({
           stage: { $in: ['GARBAGE', 'RESONATING'] }
@@ -195,17 +184,17 @@ export class ThoughtNodeService {
     }
 
     // Mutations
-    static async captureAhaMoment(content: string, subject?: string | null): Promise<ThoughtNodeDocument> {
+    static async captureAhaMoment(content: string, subject?: string | null): Promise<GraphNodeDocument> {
         // Insert DB record with stage: 'GARBAGE'
     }
 
-    static async enrichThought(id: string, userNuance: string, semanticRole?: string | null): Promise<ThoughtNodeDocument> {
+    static async enrichThought(id: string, userNuance: string, semanticRole?: string | null): Promise<GraphNodeDocument> {
         // 1. Save userNuance
         // 2. Trigger LLM to generate llmGeneratedContext and proposed relationships
         // 3. Update stage to 'RESONATING'
     }
 
-    static async promoteToBrain(id: string, approvedRelationships?: RelationshipInput): Promise<ThoughtNodeDocument> {
+    static async promoteToBrain(id: string, approvedRelationships?: RelationshipInput): Promise<GraphNodeDocument> {
         
     }
 }

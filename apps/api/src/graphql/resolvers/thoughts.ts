@@ -1,6 +1,7 @@
 import { Resolvers } from "../__generated__/types";
 import GraphQLJSON from 'graphql-type-json';
 import { ThoughtNodeService } from "../../services/thoughtNode.service"; 
+import { GraphNodeDocument } from "../../models/thoughtNode/types";
 
 export const resolvers: Resolvers = {
     // Custom scalar for JSON metadata
@@ -22,6 +23,20 @@ export const resolvers: Resolvers = {
         getPendingValidations: async () => {
             return await ThoughtNodeService.getPendingValidations();
         }
+    },
+
+    GraphNode: {
+        id: (parent: GraphNodeDocument): string => {
+            return parent._id.toString();
+        },
+        createdAt: (parent: GraphNodeDocument) => {
+            const date = parent.createdAt || new Date();
+            return date.toISOString();
+        },
+        updatedAt: (parent: GraphNodeDocument) => {
+            const date = parent.updatedAt || new Date();
+            return date.toISOString();
+        },
     },
 
     Mutation: {

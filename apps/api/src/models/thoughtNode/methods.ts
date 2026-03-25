@@ -1,4 +1,4 @@
-import { ThoughtNodeDocument, IRelationship } from './types';
+import { GraphNodeDocument, IRelationship } from './types';
 
 /**
  * Stage 2: Human Nuance + AI Context Generation
@@ -6,11 +6,11 @@ import { ThoughtNodeDocument, IRelationship } from './types';
  * This prepares the thought for human validation without polluting the Brain graph.
  */
 export async function enrich(
-  this: ThoughtNodeDocument,
+  this: GraphNodeDocument,
   userNuance: string, 
   semanticRole?: string,
   llmGeneratedContext?: string
-): Promise<ThoughtNodeDocument> {
+): Promise<GraphNodeDocument> {
   
   // 1. Assign Human Nuance
   this.context.userNuance = userNuance;
@@ -37,9 +37,9 @@ export async function enrich(
  * Crystallizes the thought into the permanent Knowledge Graph.
  */
 export async function promoteToBrain(
-  this: ThoughtNodeDocument,
+  this: GraphNodeDocument,
   approvedRelationships: IRelationship[]
-): Promise<ThoughtNodeDocument> {
+): Promise<GraphNodeDocument> {
   
   // 1. Validate and assign relationships
   // We filter out any invalid/missing relationships before assignment
