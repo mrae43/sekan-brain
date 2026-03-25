@@ -25,5 +25,5 @@ export async function expandThoughtGraph(
   startIds: (Types.ObjectId | string)[],
   depth: number = 1 
 ): Promise<ThoughtNodeDocument[]> {
-
+    const ids = startIds.map(id => new Types.ObjectId(id));
 }
