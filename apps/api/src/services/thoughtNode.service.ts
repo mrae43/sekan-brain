@@ -133,6 +133,16 @@ export class ThoughtNodeService {
         ...(rootNode.outgoingNodes || []),
         ...(rootNode.incomingNodes || [])
       ];
+
+      const nodeMap = new Map<string, any>();
+      for (const node of rawNodes) {
+        const idStr = node._id.toString();
+        if (!nodeMap.has(idStr)) {
+          nodeMap.set(idStr, node);
+        }
+      }
+
+      const uniqueNodes = Array.from(nodeMap.values());
     }
 
     static async getPendingValidations(): Promise<ThoughtNodeDocument[]> {
