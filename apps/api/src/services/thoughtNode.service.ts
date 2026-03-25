@@ -1,7 +1,10 @@
+import { Types } from 'mongoose';
 import { RelationshipInput } from '../graphql/__generated__/types';
 import { ThoughtNode } from '../models/thoughtNode/model';
 import { EmbeddingService, LLMService } from './llm.service';
 import { GraphNodeDocument, GraphEdgeDocument, GraphResponseDocument } from '../models/thoughtNode/types';
+import { KnowledgeRefineryAgent } from '@repo/agentic-graph';
+
 
 export class ThoughtNodeService {
     // Queries
@@ -120,7 +123,10 @@ export class ThoughtNodeService {
         
     }
 
-    static async expandGraph(nodeId: string, depth: number): Promise<GraphResponseDocument> {
+  static async expandGraph(nodeId: string, depth: number): Promise<GraphResponseDocument> {
+      if (!Types.ObjectId.isValid(nodeId)) {
+        throw new Error("Invalid node ID.");
+      }
       const results = await ThoughtNode.expandThoughtGraph([nodeId], depth);
 
       if (!results || results.length === 0) {
@@ -205,9 +211,38 @@ export class ThoughtNodeService {
     }
 
     static async enrichThought(id: string, userNuance: string, semanticRole?: string | null): Promise<GraphNodeDocument> {
-        // 1. Save userNuance
-        // 2. Trigger LLM to generate llmGeneratedContext and proposed relationships
-        // 3. Update stage to 'RESONATING'
+      if (!Types.ObjectId.isValid(id)) {
+        throw new Error("Invalid Node ID format.");
+      }
+
+      const node = await ThoughtNode.findById(id);
+      if (!node) {
+        throw new Error("Thought node not found.");
+      }
+
+      node.context.userNuance = userNuance;
+      if (semanticRole) {
+        node.context.semanticRole = semanticRole;
+      }
+
+      const aiResult = await KnowledgeRefineryAgent.processNode(
+        node.content,
+        node.context.userNuance,
+        node.context.semanticRole
+      );
+
+      node.context.llmGeneratedContext = aiResult.llmGeneratedContext;
+      node.context.tags = aiResult.tags;
+
+      if (aiResult.metadata) {
+        node.context.metadata = new Map(Object.entries(aiResult.metadata));
+      }
+
+      node.relationships = aiResult.proposedRelationships;
+      node.stage = 'RESONATING';
+
+      const updatedNode = await node.save();
+      return updatedNode;
     }
 
     static async promoteToBrain(id: string, approvedRelationships?: RelationshipInput): Promise<GraphNodeDocument> {
