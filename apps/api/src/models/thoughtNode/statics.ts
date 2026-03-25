@@ -22,6 +22,7 @@ export async function findCrossSubjectResonance(
  * Triggers a recursive $graphLookup to fetch interconnected thoughts
  */
 export async function expandThoughtGraph(
+  this: IThoughtNodeModel,
   startIds: (Types.ObjectId | string)[],
   depth: number = 1 
 ): Promise<ThoughtNodeDocument[]> {
@@ -29,4 +30,35 @@ export async function expandThoughtGraph(
   
   // $graphLookup maxDepth: 0 means it only fetches direct neighbors (depth 1)
   const maxDepth = depth > 0 ? depth - 1 : 0;
-}
+
+  return this.aggregate([
+    { $match: { _id: { $in: ids } } },
+    // 1. Traverse OUTGOING relationships (Thoughts this node links to)
+    {
+      $graphLookup: {
+        from: this.collection.name,
+        startWith: '$relationships.targetId',
+        connectFromField: 'relationships.targetId',
+        connectToField: '_id',
+        maxDepth: maxDepth,
+        as: 'outgoingNodes',
+        depthField: 'graphDepth',
+        restrictSearchWithMatch: { stage: 'BRAIN' }
+      }
+    },
+
+    // 2. Traverse INCOMING relationships (Thoughts that link back to this node)
+    {
+      $graphLookup: {
+        from: this.collection.name,
+        startWith: '$_id',
+        connectFromField: '_id',
+        connectToField: 'relationships.targetId',
+        maxDepth: maxDepth,
+        as: 'incomingNodes',
+        depthField: 'graphDepth',
+        restrictSearchWithMatch: { stage: 'BRAIN' }
+      }
+    }
+  ])
+};
