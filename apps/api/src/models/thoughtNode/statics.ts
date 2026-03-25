@@ -1,5 +1,5 @@
 import { Types } from 'mongoose';
-import { GraphExpandedThoughtNode, IThoughtNodeModel, ThoughtNodeDocument } from './types';
+import { GraphExpandedThoughtNode, IThoughtNodeModel, GraphNodeDocument } from './types';
 
 /**
  * Horizontal Synthesis (Cross-subject discovery)
@@ -9,7 +9,7 @@ export async function findCrossSubjectResonance(
   this: IThoughtNodeModel,
   contextId: Types.ObjectId | string, 
   currentSubject: string
-): Promise<ThoughtNodeDocument[]> {
+): Promise<GraphNodeDocument[]> {
   return this.find({
     contextId,
     subject: { $ne: currentSubject },

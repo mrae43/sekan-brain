@@ -185,7 +185,23 @@ export class ThoughtNodeService {
 
     // Mutations
     static async captureAhaMoment(content: string, subject?: string | null): Promise<GraphNodeDocument> {
-        // Insert DB record with stage: 'GARBAGE'
+      if (!content || content.trim().length === 0) {
+        throw new Error('Content cannot be empty. Even the most obscure resonance requires a trace.');
+      }
+
+      const rawThought = new ThoughtNode({
+        content: content.trim(),
+        ...(subject && { subject: subject.trim() }),
+        stage: 'GARBAGE',
+        context: {
+          tags:[],
+          metadata: new Map()
+        },
+        relationships:[]
+      });
+
+      const savedThought = await rawThought.save();
+      return savedThought;
     }
 
     static async enrichThought(id: string, userNuance: string, semanticRole?: string | null): Promise<GraphNodeDocument> {

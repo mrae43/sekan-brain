@@ -5,11 +5,11 @@ export type CognitiveStage = 'GARBAGE' | 'RESONATING' | 'BRAIN';
 
 // 2. Extracted sub-documents for cleaner typing and reusability
 export interface IContextData {
-  userNuance?: string;
-  llmGeneratedContext?: string; 
-  semanticRole?: string;
-  tags: string[];
-  metadata: Map<string, any>;   
+  userNuance?: string | null;
+  llmGeneratedContext?: string | null; 
+  semanticRole?: string | null;
+  tags?: string[] | null;
+  metadata?: Map<string, any> | null;   
 }
 
 export interface IRelationship {
