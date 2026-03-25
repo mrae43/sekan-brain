@@ -1,5 +1,5 @@
 import { GraphQLResolveInfo, GraphQLScalarType, GraphQLScalarTypeConfig } from 'graphql';
-import { ThoughtNodeDocument, GraphEdgeDocument, GraphResponseDocument } from '../../models/thoughtNode/types';
+import { GraphNodeDocument, GraphEdgeDocument, GraphResponseDocument } from '../../models/thoughtNode/types';
 export type Maybe<T> = T | null | undefined;
 export type InputMaybe<T> = T | null | undefined;
 export type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
@@ -200,7 +200,7 @@ export type ResolversTypes = ResolversObject<{
   ContextData: ResolverTypeWrapper<ContextData>;
   Float: ResolverTypeWrapper<Scalars['Float']['output']>;
   GraphEdge: ResolverTypeWrapper<GraphEdgeDocument>;
-  GraphNode: ResolverTypeWrapper<ThoughtNodeDocument>;
+  GraphNode: ResolverTypeWrapper<GraphNodeDocument>;
   GraphResponse: ResolverTypeWrapper<GraphResponseDocument>;
   ID: ResolverTypeWrapper<Scalars['ID']['output']>;
   Int: ResolverTypeWrapper<Scalars['Int']['output']>;
@@ -218,7 +218,7 @@ export type ResolversParentTypes = ResolversObject<{
   ContextData: ContextData;
   Float: Scalars['Float']['output'];
   GraphEdge: GraphEdgeDocument;
-  GraphNode: ThoughtNodeDocument;
+  GraphNode: GraphNodeDocument;
   GraphResponse: GraphResponseDocument;
   ID: Scalars['ID']['output'];
   Int: Scalars['Int']['output'];
