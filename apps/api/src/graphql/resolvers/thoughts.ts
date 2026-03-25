@@ -1,6 +1,7 @@
 import { Resolvers } from "../__generated__/types";
 import GraphQLJSON from 'graphql-type-json';
 import { ThoughtNodeService } from "../../services/thoughtNode.service"; 
+import { GraphNodeDocument } from "../../models/thoughtNode/types";
 
 export const resolvers: Resolvers = {
     // Custom scalar for JSON metadata

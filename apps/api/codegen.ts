@@ -10,7 +10,7 @@ const config: CodegenConfig = {
         useIndexSignature: true,
         maybeValue: 'T | null | undefined',
         mappers: {
-          GraphNode: '../../models/thoughtNode/types#ThoughtNodeDocument',
+          GraphNode: '../../models/thoughtNode/types#GraphNodeDocument',
           GraphEdge: '../../models/thoughtNode/types#GraphEdgeDocument',
           GraphResponse: '../../models/thoughtNode/types#GraphResponseDocument',
         }

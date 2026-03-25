@@ -57,9 +57,9 @@ export interface IThoughtNodeMethods {
   ): Promise<HydratedDocument<IThoughtNode, IThoughtNodeMethods>>;
 }
 
-export type ThoughtNodeDocument = HydratedDocument<IThoughtNode, IThoughtNodeMethods>;
+export type GraphNodeDocument = HydratedDocument<IThoughtNode, IThoughtNodeMethods>;
 
-export type GraphExpandedThoughtNode = ThoughtNodeDocument & {
+export type GraphExpandedThoughtNode = GraphNodeDocument & {
   outgoingNodes?: GraphExpandedThoughtNode[];
   incomingNodes?: GraphExpandedThoughtNode[];
 };
@@ -70,7 +70,7 @@ export interface IThoughtNodeModel extends Model<IThoughtNode, {}, IThoughtNodeM
   findCrossSubjectResonance(
     contextId: Types.ObjectId | string, 
     currentSubject: string
-  ): Promise<ThoughtNodeDocument[]>;
+  ): Promise<GraphNodeDocument[]>;
   
   // Renamed from getBrainContext to reflect Graph traversal
   // This will handle the $graphLookup aggregation in Mongoose
@@ -88,7 +88,7 @@ export type GraphEdgeDocument = {
 };
 
 export type GraphResponseDocument = {
-  nodes: ThoughtNodeDocument[];
+  nodes: GraphNodeDocument[];
   edges: GraphEdgeDocument[];
   aiSynthesis?: string;
 };
