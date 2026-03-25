@@ -122,6 +122,17 @@ export class ThoughtNodeService {
 
     static async expandGraph(nodeId: string, depth: number): Promise<GraphResponse> {
       const results = await ThoughtNode.expandThoughtGraph([nodeId], depth);
+
+      if (!results || results.length === 0) {
+         throw new Error("Aha moment not found in the Second Brain.");
+      }
+
+      const rootNode = results[0];
+      const rawNodes = [
+        rootNode,
+        ...(rootNode.outgoingNodes || []),
+        ...(rootNode.incomingNodes || [])
+      ];
     }
 
     static async getPendingValidations(): Promise<ThoughtNodeDocument[]> {
