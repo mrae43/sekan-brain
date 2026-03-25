@@ -25,5 +25,8 @@ export async function expandThoughtGraph(
   startIds: (Types.ObjectId | string)[],
   depth: number = 1 
 ): Promise<ThoughtNodeDocument[]> {
-    const ids = startIds.map(id => new Types.ObjectId(id));
+  const ids = startIds.map(id => new Types.ObjectId(id));
+  
+  // $graphLookup maxDepth: 0 means it only fetches direct neighbors (depth 1)
+  const maxDepth = depth > 0 ? depth - 1 : 0;
 }
