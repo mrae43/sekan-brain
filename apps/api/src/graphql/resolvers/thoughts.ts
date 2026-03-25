@@ -26,16 +26,16 @@ export const resolvers: Resolvers = {
     },
 
     GraphNode: {
-        id: (parent) => parent._id?.toString() || parent.id,
-        createdAt: (parent) => {
-        return parent.createdAt instanceof Date 
-            ? parent.createdAt.toISOString() 
-            : new Date(parent.createdAt).toISOString();
+        id: (parent: GraphNodeDocument): string => {
+            return parent._id.toString();
         },
-        updatedAt: (parent) => {
-        return parent.updatedAt instanceof Date 
-            ? parent.updatedAt.toISOString() 
-            : new Date(parent.updatedAt).toISOString();
+        createdAt: (parent: GraphNodeDocument) => {
+            const date = parent.createdAt || new Date();
+            return date.toISOString();
+        },
+        updatedAt: (parent: GraphNodeDocument) => {
+            const date = parent.updatedAt || new Date();
+            return date.toISOString();
         },
     },
 
