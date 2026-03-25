@@ -79,3 +79,16 @@ export interface IThoughtNodeModel extends Model<IThoughtNode, {}, IThoughtNodeM
     depth: number
   ): Promise<GraphExpandedThoughtNode[]>;
 }
+
+export type GraphEdgeDocument = {
+  sourceId: string;
+  targetId: string;
+  type: string;
+  weight: number;
+};
+
+export type GraphResponseDocument = {
+  nodes: ThoughtNodeDocument[];
+  edges: GraphEdgeDocument[];
+  aiSynthesis?: string;
+};
