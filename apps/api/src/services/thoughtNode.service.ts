@@ -121,8 +121,7 @@ export class ThoughtNodeService {
     }
 
     static async expandGraph(nodeId: string, depth: number): Promise<GraphResponse> {
-        // Run a graph query (e.g., Neo4j/MongoDB $graphLookup) starting from nodeId
-        // Return flattened { nodes, edges } for the UI
+      const results = await ThoughtNode.expandThoughtGraph([nodeId], depth);
     }
 
     static async getPendingValidations(): Promise<ThoughtNodeDocument[]> {
