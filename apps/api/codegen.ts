@@ -13,6 +13,7 @@ const config: CodegenConfig = {
           GraphNode: '../../models/thoughtNode/types#GraphNodeDocument',
           GraphEdge: '../../models/thoughtNode/types#GraphEdgeDocument',
           GraphResponse: '../../models/thoughtNode/types#GraphResponseDocument',
+          ContextData: '../../models/thoughtNode/types#IContextData',
         }
       },
     },
