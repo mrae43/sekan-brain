@@ -161,6 +161,22 @@ export class ThoughtNodeService {
           }
         }
       }
+      
+      const formattedNodes = uniqueNodes.map((node) => ({
+        id: node._id.toString(),
+        content: node.content,
+        stage: node.stage,
+        subject: node.subject,
+        createdAt: node.createdAt?.toISOString(),
+        updatedAt: node.updatedAt?.toISOString(),
+        relationships: node.relationships || [],
+        context: node.context || {}
+      }))
+
+      return {
+        nodes: formattedNodes,
+        edges: edges,
+      }
     }
 
     static async getPendingValidations(): Promise<ThoughtNodeDocument[]> {
