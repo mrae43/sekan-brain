@@ -56,6 +56,11 @@ export interface IThoughtNodeMethods {
 
 export type ThoughtNodeDocument = HydratedDocument<IThoughtNode, IThoughtNodeMethods>;
 
+export type GraphExpandedThoughtNode = ThoughtNodeDocument & {
+  outgoingNodes?: GraphExpandedThoughtNode[];
+  incomingNodes?: GraphExpandedThoughtNode[];
+};
+
 // 5. Static Model Methods (Graph RAG Entry Points)
 export interface IThoughtNodeModel extends Model<IThoughtNode, {}, IThoughtNodeMethods> {
   // Still highly relevant: Used when LLM identifies a resonance opportunity
@@ -69,5 +74,5 @@ export interface IThoughtNodeModel extends Model<IThoughtNode, {}, IThoughtNodeM
   expandThoughtGraph(
     startIds: (Types.ObjectId | string)[],
     depth: number
-  ): Promise<ThoughtNodeDocument[]>;
+  ): Promise<GraphExpandedThoughtNode[]>;
 }

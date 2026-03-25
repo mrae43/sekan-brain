@@ -121,8 +121,62 @@ export class ThoughtNodeService {
     }
 
     static async expandGraph(nodeId: string, depth: number): Promise<GraphResponse> {
-        // Run a graph query (e.g., Neo4j/MongoDB $graphLookup) starting from nodeId
-        // Return flattened { nodes, edges } for the UI
+      const results = await ThoughtNode.expandThoughtGraph([nodeId], depth);
+
+      if (!results || results.length === 0) {
+         throw new Error("Aha moment not found in the Second Brain.");
+      }
+
+      const rootNode = results[0];
+      const rawNodes = [
+        rootNode,
+        ...(rootNode.outgoingNodes || []),
+        ...(rootNode.incomingNodes || [])
+      ];
+
+      const nodeMap = new Map<string, any>();
+      for (const node of rawNodes) {
+        const idStr = node._id.toString();
+        if (!nodeMap.has(idStr)) {
+          nodeMap.set(idStr, node);
+        }
+      }
+
+      const uniqueNodes = Array.from(nodeMap.values());
+
+      const edges: any[] = [];
+      
+      for (const node of uniqueNodes) {
+        if (node.relationships && Array.isArray(node.relationships)) {
+          for (const rel of node.relationships) {
+            const targetIdStr = rel.targetId.toString();
+            if (nodeMap.has(targetIdStr)) {
+              edges.push({
+                sourceId: node._id.toString(),
+                targetId: targetIdStr,
+                type: rel.type,
+                weight: rel.weight || 1.0
+              })
+            }
+          }
+        }
+      }
+      
+      const formattedNodes = uniqueNodes.map((node) => ({
+        id: node._id.toString(),
+        content: node.content,
+        stage: node.stage,
+        subject: node.subject,
+        createdAt: node.createdAt?.toISOString(),
+        updatedAt: node.updatedAt?.toISOString(),
+        relationships: node.relationships || [],
+        context: node.context || {}
+      }))
+
+      return {
+        nodes: formattedNodes,
+        edges: edges,
+      }
     }
 
     static async getPendingValidations(): Promise<ThoughtNodeDocument[]> {

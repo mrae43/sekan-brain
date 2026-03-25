@@ -1,5 +1,5 @@
 import { Types } from 'mongoose';
-import { IThoughtNodeModel, ThoughtNodeDocument } from './types';
+import { GraphExpandedThoughtNode, IThoughtNodeModel, ThoughtNodeDocument } from './types';
 
 /**
  * Horizontal Synthesis (Cross-subject discovery)
@@ -25,31 +25,40 @@ export async function expandThoughtGraph(
   this: IThoughtNodeModel,
   startIds: (Types.ObjectId | string)[],
   depth: number = 1 
-): Promise<ThoughtNodeDocument[]> {
+): Promise<GraphExpandedThoughtNode[]> {
+  const ids = startIds.map(id => new Types.ObjectId(id));
   
-  // Mongoose aggregations do not auto-cast ObjectIds in $in arrays
-  const objectIds = startIds.map(id => typeof id === 'string' ? new Types.ObjectId(id) : id);
+  // $graphLookup maxDepth: 0 means it only fetches direct neighbors (depth 1)
+  const maxDepth = depth > 0 ? depth - 1 : 0;
 
   return this.aggregate([
-    // 1. Find the starting nodes, ensuring they are validated thoughts
-    { $match: { _id: { $in: objectIds }, stage: 'BRAIN' } },
-    
-    // 2. Traverse the knowledge graph
+    { $match: { _id: { $in: ids } } },
+    // 1. Traverse OUTGOING relationships (Thoughts this node links to)
     {
       $graphLookup: {
-        from: 'thoughtnodes', // Assumes Mongoose default pluralization of 'ThoughtNode'
-        startWith: '$relationships.targetId', // Updated to targetId
-        connectFromField: 'relationships.targetId', // Updated to targetId
+        from: this.collection.name,
+        startWith: '$relationships.targetId',
+        connectFromField: 'relationships.targetId',
         connectToField: '_id',
-        maxDepth: depth, // Use dynamic depth passed from GraphQL
-        as: 'network',
-        restrictSearchWithMatch: { stage: 'BRAIN' } // Only pull in validated connections
+        maxDepth: maxDepth,
+        as: 'outgoingNodes',
+        depthField: 'graphDepth',
+        restrictSearchWithMatch: { stage: 'BRAIN' }
+      }
+    },
+
+    // 2. Traverse INCOMING relationships (Thoughts that link back to this node)
+    {
+      $graphLookup: {
+        from: this.collection.name,
+        startWith: '$_id',
+        connectFromField: '_id',
+        connectToField: 'relationships.targetId',
+        maxDepth: maxDepth,
+        as: 'incomingNodes',
+        depthField: 'graphDepth',
+        restrictSearchWithMatch: { stage: 'BRAIN' }
       }
     }
-    
-    // Note: The previous logic filtering by `weight` inside the aggregation pipeline 
-    // was removed. `$graphLookup` returns full documents, not edge definitions. 
-    // You should filter low-weight/negative edges in the Service layer when 
-    // constructing the `{ nodes, edges }` flat GraphResponse for the frontend.
-  ]);
-}
+  ])
+};
