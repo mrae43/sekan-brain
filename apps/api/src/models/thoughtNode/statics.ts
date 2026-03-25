@@ -1,5 +1,5 @@
 import { Types } from 'mongoose';
-import { IThoughtNodeModel, ThoughtNodeDocument } from './types';
+import { GraphExpandedThoughtNode, IThoughtNodeModel, ThoughtNodeDocument } from './types';
 
 /**
  * Horizontal Synthesis (Cross-subject discovery)
@@ -25,7 +25,7 @@ export async function expandThoughtGraph(
   this: IThoughtNodeModel,
   startIds: (Types.ObjectId | string)[],
   depth: number = 1 
-): Promise<ThoughtNodeDocument[]> {
+): Promise<GraphExpandedThoughtNode[]> {
   const ids = startIds.map(id => new Types.ObjectId(id));
   
   // $graphLookup maxDepth: 0 means it only fetches direct neighbors (depth 1)
