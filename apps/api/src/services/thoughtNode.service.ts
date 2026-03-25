@@ -1,7 +1,7 @@
 import { RelationshipInput } from '../graphql/__generated__/types';
 import { ThoughtNode } from '../models/thoughtNode/model';
 import { EmbeddingService, LLMService } from './llm.service';
-import { GraphNodeDocument, GraphResponseDocument, GraphEdgeDocument } from '../models/thoughtNode/types';
+import { GraphNodeDocument, GraphEdgeDocument, GraphResponseDocument } from '../models/thoughtNode/types';
 
 export class ThoughtNodeService {
     // Queries
@@ -144,7 +144,7 @@ export class ThoughtNodeService {
 
       const uniqueNodes = Array.from(nodeMap.values());
 
-      const edges: any[] = [];
+      const edges: GraphEdgeDocument[] = [];
       
       for (const node of uniqueNodes) {
         if (node.relationships && Array.isArray(node.relationships)) {
@@ -162,19 +162,8 @@ export class ThoughtNodeService {
         }
       }
       
-      const formattedNodes = uniqueNodes.map((node) => ({
-        id: node._id.toString(),
-        content: node.content,
-        stage: node.stage,
-        subject: node.subject,
-        createdAt: node.createdAt?.toISOString(),
-        updatedAt: node.updatedAt?.toISOString(),
-        relationships: node.relationships || [],
-        context: node.context || {}
-      }))
-
       return {
-        nodes: formattedNodes,
+        nodes: uniqueNodes,
         edges: edges,
       }
     }
