@@ -1,7 +1,7 @@
 import { Resolvers } from "../__generated__/types";
 import GraphQLJSON from 'graphql-type-json';
 import { ThoughtNodeService } from "../../services/thoughtNode.service"; 
-import { GraphNodeDocument, IContextData } from "../../models/thoughtNode/types";
+import { GraphNodeDocument, IContextData, IRelationship } from "../../models/thoughtNode/types";
 
 export const resolvers: Resolvers = {
     // Custom scalar for JSON metadata
@@ -53,6 +53,12 @@ export const resolvers: Resolvers = {
         }
     },
 
+    Relationship: {
+        targetId: (parent: IRelationship): string => {
+            return parent.targetId.toString();
+        }
+    },
+
     Mutation: {
         // Stage 1: Frictionless capture (Defaults to GARBAGE stage internally)
         captureAhaMoment: async (_, { content, subject }) => {
@@ -61,12 +67,16 @@ export const resolvers: Resolvers = {
         
         // Stage 2: Human nuance + AI Context generation (Moves to RESONATING stage)
         enrichThought: async (_, { id, userNuance, semanticRole }) => {
-            return await ThoughtNodeService.enrichThought(id, userNuance, semanticRole);
+            return await ThoughtNodeService.enrichThought(
+                id, 
+                userNuance, 
+                semanticRole
+            );
         },
 
         // Stage 3: Human validation and graph integration (Moves to BRAIN stage)
         promoteToBrain: async (_, { id, approvedRelationships }) => {
-            return await ThoughtNodeService.promoteToBrain(id, approvedRelationships);
+            return await ThoughtNodeService.promoteToBrain(id, approvedRelationships ?? undefined);
         }
     }
 };

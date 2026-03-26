@@ -1,5 +1,5 @@
 import { GraphQLResolveInfo, GraphQLScalarType, GraphQLScalarTypeConfig } from 'graphql';
-import { GraphNodeDocument, GraphEdgeDocument, GraphResponseDocument, IContextData } from '../../models/thoughtNode/types';
+import { GraphNodeDocument, GraphEdgeDocument, GraphResponseDocument, IContextData, IRelationship } from '../../models/thoughtNode/types';
 export type Maybe<T> = T | null | undefined;
 export type InputMaybe<T> = T | null | undefined;
 export type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
@@ -207,7 +207,7 @@ export type ResolversTypes = ResolversObject<{
   JSON: ResolverTypeWrapper<Scalars['JSON']['output']>;
   Mutation: ResolverTypeWrapper<Record<PropertyKey, never>>;
   Query: ResolverTypeWrapper<Record<PropertyKey, never>>;
-  Relationship: ResolverTypeWrapper<Relationship>;
+  Relationship: ResolverTypeWrapper<IRelationship>;
   RelationshipInput: RelationshipInput;
   String: ResolverTypeWrapper<Scalars['String']['output']>;
 }>;
@@ -225,7 +225,7 @@ export type ResolversParentTypes = ResolversObject<{
   JSON: Scalars['JSON']['output'];
   Mutation: Record<PropertyKey, never>;
   Query: Record<PropertyKey, never>;
-  Relationship: Relationship;
+  Relationship: IRelationship;
   RelationshipInput: RelationshipInput;
   String: Scalars['String']['output'];
 }>;

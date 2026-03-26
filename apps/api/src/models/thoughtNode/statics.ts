@@ -1,5 +1,6 @@
 import { Types } from 'mongoose';
 import { GraphExpandedThoughtNode, IThoughtNodeModel, GraphNodeDocument } from './types';
+import { KnowledgeRefineryAgent } from '@repo/agentic-graph';
 
 /**
  * Horizontal Synthesis (Cross-subject discovery)
