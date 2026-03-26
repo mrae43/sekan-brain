@@ -8,9 +8,18 @@ import { GraphNodeDocument, IRelationship } from './types';
 export async function enrich(
   this: GraphNodeDocument,
   userNuance: string, 
-  semanticRole?: string,
-  llmGeneratedContext?: string
+  semanticRole?: string | null,
+  aiResults?: {
+    llmGeneratedContext?: string | null;
+    tags?: string[] | null;
+    metadata?: Record<string, any> | null;
+    proposedRelationships?: IRelationship[] | null;
+  }
 ): Promise<GraphNodeDocument> {
+
+  if (!this.context) {
+    this.context = {};
+  }
   
   // 1. Assign Human Nuance
   this.context.userNuance = userNuance;
@@ -20,12 +29,23 @@ export async function enrich(
     this.context.semanticRole = semanticRole;
   }
   
-  if (llmGeneratedContext) {
-    this.context.llmGeneratedContext = llmGeneratedContext;
+  if (aiResults) {
+    if (aiResults.llmGeneratedContext) {
+      this.context.llmGeneratedContext = aiResults.llmGeneratedContext;
+    }
+    if (aiResults.tags) {
+      this.context.tags = aiResults.tags;
+    }
+    if (aiResults.metadata) {
+      this.context.metadata = new Map(Object.entries(aiResults.metadata));
+    }
+    if (aiResults.proposedRelationships) {
+      this.relationships = aiResults.proposedRelationships;
+    }
   }
   
   // 3. Move to transitionary stage
-  this.stage = 'BRAIN';
+  this.stage = 'RESONATING';
   
   // 4. Save and return the Hydrated Document
   return this.save();
@@ -44,7 +64,9 @@ export async function promoteToBrain(
   // 1. Validate and assign relationships
   // We filter out any invalid/missing relationships before assignment
   const validRelationships = approvedRelationships.filter(r => 
-    r.targetId && r.type && r.explanation
+    r.targetId &&
+    r.type &&
+    r.explanation && r.explanation.trim() !== ""
   );
   
   this.relationships = validRelationships;
