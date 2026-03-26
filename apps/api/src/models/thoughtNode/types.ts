@@ -17,7 +17,7 @@ export interface IRelationship {
   type: string;
   weight: number;
   isCrossSubject: boolean;
-  explanation?: string;         
+  explanation?: string;
 }
 
 // 3. The Core Entity (formerly ISentence)
@@ -48,8 +48,13 @@ export interface IThoughtNode {
 export interface IThoughtNodeMethods {
   enrich(
     userNuance: string, 
-    semanticRole?: string, 
-    llmGeneratedContext?: string
+    semanticRole?: string | null, 
+    aiResults?: {
+      llmGeneratedContext?: string | null;
+      tags?: string[] | null;
+      metadata?: Record<string, any> | null;
+      proposedRelationships?: IRelationship[] | null;
+    }
   ): Promise<HydratedDocument<IThoughtNode, IThoughtNodeMethods>>;
 
   promoteToBrain(
