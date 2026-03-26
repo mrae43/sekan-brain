@@ -14,6 +14,7 @@ const config: CodegenConfig = {
           GraphEdge: '../../models/thoughtNode/types#GraphEdgeDocument',
           GraphResponse: '../../models/thoughtNode/types#GraphResponseDocument',
           ContextData: '../../models/thoughtNode/types#IContextData',
+          Relationship: '../../models/thoughtNode/types#IRelationship',
         }
       },
     },
