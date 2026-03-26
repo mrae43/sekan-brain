@@ -1,13 +1,21 @@
 import { Types } from 'mongoose';
+import { GraphQLError } from 'graphql';
 import { RelationshipInput } from '../graphql/__generated__/types';
 import { ThoughtNode } from '../models/thoughtNode/model';
 import { EmbeddingService, LLMService } from './llm.service';
-import { GraphNodeDocument, GraphEdgeDocument, GraphResponseDocument } from '../models/thoughtNode/types';
+import { GraphNodeDocument, GraphEdgeDocument, GraphResponseDocument, IRelationship } from '../models/thoughtNode/types';
 import { KnowledgeRefineryAgent } from '@repo/agentic-graph';
 
 
 export class ThoughtNodeService {
-    // Queries
+    /**
+     * Graph Search & Resonance Discovery
+     * Performs a vector search to find initial seed nodes, expands the graph based on context and subjects, 
+     * and generates an AI synthesis of the findings.
+     * 
+     * @param query - The natural language query to find resonance for.
+     * @returns A GraphResponseDocument containing nodes, edges, and AI synthesis.
+     */
     static async findResonatingThoughts(query: string): Promise<GraphResponseDocument> {
       const queryEmbedding = await EmbeddingService.generateEmbedding(query);
       
@@ -123,7 +131,16 @@ export class ThoughtNodeService {
         
     }
 
-  static async expandGraph(nodeId: string, depth: number): Promise<GraphResponseDocument> {
+    /**
+     * Graph Exploration
+     * Traverses the graph from a specific node to a given depth, retrieving connected nodes 
+     * and edges to visualize the local thought network.
+     * 
+     * @param nodeId - The ID of the starting node.
+     * @param depth - The number of levels to traverse from the starting node.
+     * @returns A GraphResponseDocument with the local subgraph.
+     */
+    static async expandGraph(nodeId: string, depth: number): Promise<GraphResponseDocument> {
       if (!Types.ObjectId.isValid(nodeId)) {
         throw new Error("Invalid node ID.");
       }
@@ -174,6 +191,13 @@ export class ThoughtNodeService {
       }
     }
 
+    /**
+     * Queue Management
+     * Retrieves a list of thought nodes currently in the 'GARBAGE' or 'RESONATING' stages, 
+     * sorted by potential priority for human validation.
+     * 
+     * @returns An array of GraphNodeDocuments awaiting human or agentic intervention.
+     */
     static async getPendingValidations(): Promise<GraphNodeDocument[]> {
       try {
         const pendingNodes = await ThoughtNode.find({
@@ -189,7 +213,15 @@ export class ThoughtNodeService {
       }
     }
 
-    // Mutations
+    /**
+     * Stage 1: Initial Capture
+     * Records a raw thought into the system at the 'GARBAGE' stage, 
+     * preserving the initial spark for later refinement.
+     * 
+     * @param content - The raw text of the thought.
+     * @param subject - Optional category or subject for the thought.
+     * @returns The newly created GraphNodeDocument.
+     */
     static async captureAhaMoment(content: string, subject?: string | null): Promise<GraphNodeDocument> {
       if (!content || content.trim().length === 0) {
         throw new Error('Content cannot be empty. Even the most obscure resonance requires a trace.');
@@ -210,6 +242,16 @@ export class ThoughtNodeService {
       return savedThought;
     }
 
+    /**
+     * Stage 2: Agentic Refinement & Resonance
+     * Enhances a raw thought using AI to generate context, tags, and proposed 
+     * relationships based on user nuance and semantic roles.
+     * 
+     * @param id - The ID of the node to enrich.
+     * @param userNuance - Additional context or intent provided by the user.
+     * @param semanticRole - Optional label describing the thought's role.
+     * @returns The enriched GraphNodeDocument in the 'RESONATING' stage.
+     */
     static async enrichThought(id: string, userNuance: string, semanticRole?: string | null): Promise<GraphNodeDocument> {
       if (!Types.ObjectId.isValid(id)) {
         throw new Error("Invalid Node ID format.");
@@ -220,32 +262,71 @@ export class ThoughtNodeService {
         throw new Error("Thought node not found.");
       }
 
-      node.context.userNuance = userNuance;
-      if (semanticRole) {
-        node.context.semanticRole = semanticRole;
-      }
-
       const aiResult = await KnowledgeRefineryAgent.processNode(
         node.content,
-        node.context.userNuance,
-        node.context.semanticRole
+        userNuance,
+        semanticRole || undefined
       );
 
-      node.context.llmGeneratedContext = aiResult.llmGeneratedContext;
-      node.context.tags = aiResult.tags;
+      return node.enrich(userNuance, semanticRole, {
+        llmGeneratedContext: aiResult.llmGeneratedContext,
+        tags: aiResult.tags,
+        metadata: aiResult.metadata,
+        proposedRelationships: aiResult.proposedRelationships
+      });
+  }
+  
+    /**
+     * Stage 3: Human Validation & Graph Integration
+     * Promotes a thought node to the 'BRAIN' stage, cementing its relationships.
+     * 
+     * @param id - The ID of the GraphNode to promote.
+     * @param approvedRelationships - The human-validated array of connections.
+     * @returns The crystallized GraphNodeDocument.
+     */
 
-      if (aiResult.metadata) {
-        node.context.metadata = new Map(Object.entries(aiResult.metadata));
-      }
+    static async promoteToBrain(id: string, approvedRelationships?: RelationshipInput[]): Promise<GraphNodeDocument> {
+        try {
+          if (!Types.ObjectId.isValid(id)) {
+            throw new Error("Invalid Node ID format.");
+          }
 
-      node.relationships = aiResult.proposedRelationships;
-      node.stage = 'RESONATING';
+          const node = await ThoughtNode.findById(id);
+          if (!node) {
+            throw new Error("Thought node not found.");
+          }
 
-      const updatedNode = await node.save();
-      return updatedNode;
-    }
+          if (node.stage !== 'RESONATING') {
+            throw new GraphQLError(
+              `[Sekan-Brain] Cannot promote node in ${node.stage} stage. Must be RESONATING first.`, 
+              { extensions: { code: 'FAILED_PRECONDITION' } }
+            );
+          }
 
-    static async promoteToBrain(id: string, approvedRelationships?: RelationshipInput): Promise<GraphNodeDocument> {
-        
+          // Map GraphQL input to IRelationship if necessary, or pass through if compatible
+           const approved: IRelationship[] = (approvedRelationships ||[]).map(rel => {
+            if (!Types.ObjectId.isValid(rel.targetId)) {
+              throw new GraphQLError(`Invalid targetId format for relationship: ${rel.targetId}`, { extensions: { code: 'BAD_USER_INPUT' } });
+            }
+             
+            return {
+              targetId: new Types.ObjectId(rel.targetId),
+              type: rel.type,
+              weight: rel.weight ?? 1.0,
+              isCrossSubject: rel.isCrossSubject ?? false,
+              explanation: rel.explanation || undefined
+            };
+          });
+
+          return node.promoteToBrain(approved);
+        } catch (error) {
+          if (error instanceof GraphQLError) {
+            throw error;
+          }
+          // Wrap generic database/server errors
+          throw new GraphQLError(`Failed to crystallize thought into BRAIN: ${(error as Error).message}`, {
+            extensions: { code: 'INTERNAL_SERVER_ERROR' }
+          });
+        }
     }
 }
