@@ -37,7 +37,7 @@ export async function enrich(
       this.context.tags = aiResults.tags;
     }
     if (aiResults.metadata) {
-      this.context.metadata = new Map(Object.entries(aiResults.metadata));
+      this.context.metadata = aiResults.metadata;
     }
     if (aiResults.proposedRelationships) {
       this.relationships = aiResults.proposedRelationships;

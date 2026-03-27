@@ -9,7 +9,7 @@ export interface IContextData {
   llmGeneratedContext?: string | null; 
   semanticRole?: string | null;
   tags?: string[] | null;
-  metadata?: Map<string, any> | null;   
+  metadata?: Record<string, unknown> | null;   
 }
 
 export interface IRelationship {
