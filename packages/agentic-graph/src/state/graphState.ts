@@ -1,6 +1,6 @@
 import { Annotation } from "@langchain/langgraph";
 import { BaseMessage } from "@langchain/core/messages";
-import { IContextData, IRelationship } from "@repo/api/src/models/thoughtNode/types";
+import { IContextData, IRelationship, GraphExpandedThoughtNode } from "@repo/api/src/models/thoughtNode/types";
 
 export const RefineryStateAnnotation = Annotation.Root({
   // The original ThoughtNode ID being processed
@@ -30,6 +30,11 @@ export const RefineryStateAnnotation = Annotation.Root({
   generatedContext: Annotation<IContextData | null>({
     reducer: (state, update) => update ?? state,
     default: () => null,
+  }),
+  // Raw nodes retrieved from DB to be processed by Analyze Node
+  retrievedContext: Annotation<GraphExpandedThoughtNode[]>({
+    reducer: (state, update) => update ?? state,
+    default: () => [],
   })
 });
 
