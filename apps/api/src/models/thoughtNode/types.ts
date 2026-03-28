@@ -71,18 +71,19 @@ export type GraphExpandedThoughtNode = GraphNodeDocument & {
 
 // 5. Static Model Methods (Graph RAG Entry Points)
 export interface IThoughtNodeModel extends Model<IThoughtNode, {}, IThoughtNodeMethods> {
-  // Still highly relevant: Used when LLM identifies a resonance opportunity
-  findCrossSubjectResonance(
-    contextId: Types.ObjectId | string, 
-    currentSubject: string
-  ): Promise<GraphNodeDocument[]>;
-  
-  // Renamed from getBrainContext to reflect Graph traversal
+
   // This will handle the $graphLookup aggregation in Mongoose
   expandThoughtGraph(
     startIds: (Types.ObjectId | string)[],
     depth: number
   ): Promise<GraphExpandedThoughtNode[]>;
+
+  vectorSearch(params: {
+    queryVector: number[];
+    limit?: number;
+    numCandidates?: number;
+    stage?: CognitiveStage; 
+  }): Promise<(GraphNodeDocument & { score: number })[]>;
 }
 
 export type GraphEdgeDocument = {
