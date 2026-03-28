@@ -295,6 +295,10 @@ export class ThoughtNodeService {
             );
           }
 
+          // TRIGGER: Generate final high-quality resonance for the Brain stage
+          console.log(`[Sekan-Brain] Generating final vector resonance for Node ID: ${id}`);
+          const finalEmbedding = await EmbeddingService.generateEmbedding(node.content);
+          
           // Map GraphQL input to IRelationship if necessary, or pass through if compatible
            const approved: IRelationship[] = (approvedRelationships ||[]).map(rel => {
             if (!Types.ObjectId.isValid(rel.targetId)) {
@@ -310,7 +314,7 @@ export class ThoughtNodeService {
             };
           });
 
-          return node.promoteToBrain(approved);
+          return node.promoteToBrain(approved, finalEmbedding);
         } catch (error) {
           if (error instanceof GraphQLError) {
             throw error;
