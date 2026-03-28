@@ -33,9 +33,8 @@ export interface IThoughtNode {
   subject?: string;
   stage: CognitiveStage;
   
-  // Used for Vector Search / RAG (Note: If using MongoDB Atlas Vector Search, 
-  // you might eventually change this to `number[]`, but Buffer is fine if using pgvector/others)
-  embedding?: Buffer;           
+  // Used for Vector Search / RAG via MongoDB Atlas
+  embedding?: number[];           
   
   context: IContextData;        
   relationships: IRelationship[];
@@ -58,7 +57,8 @@ export interface IThoughtNodeMethods {
   ): Promise<HydratedDocument<IThoughtNode, IThoughtNodeMethods>>;
 
   promoteToBrain(
-    approvedRelationships: IRelationship[]
+    approvedRelationships: IRelationship[],
+    embedding?: number[]
   ): Promise<HydratedDocument<IThoughtNode, IThoughtNodeMethods>>;
 }
 

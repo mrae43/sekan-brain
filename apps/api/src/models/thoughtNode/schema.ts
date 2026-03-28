@@ -24,7 +24,7 @@ export const thoughtNodeSchema = new Schema<IThoughtNode, IThoughtNodeModel, ITh
 
   // 4. Vector Optimization (For Vector Search / RAG)
   embedding: { 
-    type: Buffer, 
+    type: [Number], 
     required: false,
     select: false 
   },
