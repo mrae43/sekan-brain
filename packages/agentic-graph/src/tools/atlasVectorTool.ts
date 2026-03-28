@@ -1,15 +1,7 @@
 import { tool } from "@langchain/core/tools";
 import { z } from "zod";
-import { OpenAIEmbeddings } from "@langchain/openai";
+import { AIProvider } from "../orchestration/aiProvider";
 import { ThoughtNode } from "@repo/api/src/models/thoughtNode/model";
-
-const EMBEDDING_MODEL = process.env.EMBEDDING_MODEL || "text-embedding-3-small";
-const EMBEDDING_DIMENSIONS = parseInt(process.env.EMBEDDING_DIMENSIONS || "1536", 10);
-
-const embeddings = new OpenAIEmbeddings({
-    modelName: EMBEDDING_MODEL,
-    dimensions: EMBEDDING_DIMENSIONS,
-});
 
 /**
  * ATLAS VECTOR SEARCH TOOL
@@ -21,7 +13,7 @@ export const atlasVectorTool = tool(
     console.log(`[Tool: atlasVectorTool] Agent invoked search for: "${query}"`);
 
     try {
-      const queryVector = await embeddings.embedQuery(query);
+      const queryVector = await AIProvider.getEmbeddings().embedQuery(query);
 
       const results = await ThoughtNode.vectorSearch({
         queryVector,

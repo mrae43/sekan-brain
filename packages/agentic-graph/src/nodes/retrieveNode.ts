@@ -1,13 +1,8 @@
 import { RefineryState } from "../state/graphState";
-import { OpenAIEmbeddings } from "@langchain/openai";
+import { AIProvider } from "../orchestration/aiProvider";
 import { ThoughtNode } from "@repo/api/src/models/thoughtNode/model"; 
 import { GraphExpandedThoughtNode } from "@repo/api/src/models/thoughtNode/types";
 
-
-const embeddings = new OpenAIEmbeddings({ 
-    modelName: "text-embedding-3-small", 
-    dimensions: 1536 
-  });
 
 /**
  * RETRIEVE NODE
@@ -18,7 +13,7 @@ export const retrieveNode = async (state: RefineryState): Promise<Partial<Refine
 
   try {
     const searchQuery = `${state.content} ${state.userNuance}`;
-    const queryVector = await embeddings.embedQuery(searchQuery);
+    const queryVector = await AIProvider.getEmbeddings().embedQuery(searchQuery);
 
     const resonantNodes = await ThoughtNode.vectorSearch({
       queryVector,
