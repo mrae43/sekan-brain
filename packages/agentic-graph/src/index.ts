@@ -1,4 +1,7 @@
 import { buildRefineryGraph } from "./graphs/refineryGraphs";
+import { KnowledgeRefineryAgent } from "./orchestration/KnowledgeRefineryAgent";
+
+export { KnowledgeRefineryAgent };
 
 export const runRefineryPipeline = async (nodeId: string, content: string, userNuance: string) => {
   const graph = buildRefineryGraph();
