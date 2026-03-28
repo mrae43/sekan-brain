@@ -33,9 +33,8 @@ export interface IThoughtNode {
   subject?: string;
   stage: CognitiveStage;
   
-  // Used for Vector Search / RAG (Note: If using MongoDB Atlas Vector Search, 
-  // you might eventually change this to `number[]`, but Buffer is fine if using pgvector/others)
-  embedding?: Buffer;           
+  // Used for Vector Search / RAG via MongoDB Atlas
+  embedding?: number[];           
   
   context: IContextData;        
   relationships: IRelationship[];
@@ -58,7 +57,8 @@ export interface IThoughtNodeMethods {
   ): Promise<HydratedDocument<IThoughtNode, IThoughtNodeMethods>>;
 
   promoteToBrain(
-    approvedRelationships: IRelationship[]
+    approvedRelationships: IRelationship[],
+    embedding?: number[]
   ): Promise<HydratedDocument<IThoughtNode, IThoughtNodeMethods>>;
 }
 
@@ -71,18 +71,19 @@ export type GraphExpandedThoughtNode = GraphNodeDocument & {
 
 // 5. Static Model Methods (Graph RAG Entry Points)
 export interface IThoughtNodeModel extends Model<IThoughtNode, {}, IThoughtNodeMethods> {
-  // Still highly relevant: Used when LLM identifies a resonance opportunity
-  findCrossSubjectResonance(
-    contextId: Types.ObjectId | string, 
-    currentSubject: string
-  ): Promise<GraphNodeDocument[]>;
-  
-  // Renamed from getBrainContext to reflect Graph traversal
+
   // This will handle the $graphLookup aggregation in Mongoose
   expandThoughtGraph(
     startIds: (Types.ObjectId | string)[],
     depth: number
   ): Promise<GraphExpandedThoughtNode[]>;
+
+  vectorSearch(params: {
+    queryVector: number[];
+    limit?: number;
+    numCandidates?: number;
+    stage?: CognitiveStage; 
+  }): Promise<(GraphNodeDocument & { score: number })[]>;
 }
 
 export type GraphEdgeDocument = {

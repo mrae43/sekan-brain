@@ -2,7 +2,7 @@ import { z } from "zod";
 import { Types } from "mongoose";
 import { ChatPromptTemplate } from "@langchain/core/prompts";
 import { RefineryState } from "../state/graphState";
-import { ChatOpenAI } from "@langchain/openai";
+import { AIProvider } from "../orchestration/aiProvider";
 
 const AnalysisOutputSchema = z.object({
   generatedContext: z.object({
@@ -22,16 +22,13 @@ const AnalysisOutputSchema = z.object({
   ).describe("An array of graph edges connecting the new thought to the retrieved context.")
 })
 
-const llm = new ChatOpenAI({ 
-  modelName: "gpt-4o", 
-  temperature: 0.2 
-}).withStructuredOutput(AnalysisOutputSchema, { name: "extract_cognitive_resonance" });
-
 /**
  * ANALYZE NODE
  * The "Brain" of the Resonance phase. Evaluates new nuance against historical leylines.
  */
 export const analyzeNode = async (state: RefineryState): Promise<Partial<RefineryState>> => {
+  const llm = AIProvider.getLLM().withStructuredOutput(AnalysisOutputSchema, { name: "extract_cognitive_resonance" });
+  
   console.log(`[Analyze Node] Analyzing resonance for Node ID: ${state.nodeId}`);
   try {
     const historicalContext = state.retrievedContext?.length

@@ -6,7 +6,6 @@ import { EmbeddingService, LLMService } from './llm.service';
 import { GraphNodeDocument, GraphEdgeDocument, GraphResponseDocument, IRelationship } from '../models/thoughtNode/types';
 import { KnowledgeRefineryAgent } from '@repo/agentic-graph';
 
-
 export class ThoughtNodeService {
     /**
      * Graph Search & Resonance Discovery
@@ -19,18 +18,11 @@ export class ThoughtNodeService {
     static async findResonatingThoughts(query: string): Promise<GraphResponseDocument> {
       const queryEmbedding = await EmbeddingService.generateEmbedding(query);
       
-      const seedNodes = await ThoughtNode.aggregate([
-        {
-          $vectorSearch: {
-            index: 'thought_node_vector_index',
-            path: 'embedding',
-            queryVector: queryEmbedding,
-            numCandidates: 100,
-            limit: 4,
-            filter: { stage: 'BRAIN' }
-          }
-        },
-      ])
+      const seedNodes = await ThoughtNode.vectorSearch({
+        queryVector: queryEmbedding,
+        limit: 4,
+        stage: 'BRAIN'
+      });
 
       if (!seedNodes || seedNodes.length === 0) {
         return { nodes: [], edges:[], aiSynthesis: "No resonating thoughts found." };
@@ -303,6 +295,10 @@ export class ThoughtNodeService {
             );
           }
 
+          // TRIGGER: Generate final high-quality resonance for the Brain stage
+          console.log(`[Sekan-Brain] Generating final vector resonance for Node ID: ${id}`);
+          const finalEmbedding = await EmbeddingService.generateEmbedding(node.content);
+          
           // Map GraphQL input to IRelationship if necessary, or pass through if compatible
            const approved: IRelationship[] = (approvedRelationships ||[]).map(rel => {
             if (!Types.ObjectId.isValid(rel.targetId)) {
@@ -318,7 +314,7 @@ export class ThoughtNodeService {
             };
           });
 
-          return node.promoteToBrain(approved);
+          return node.promoteToBrain(approved, finalEmbedding);
         } catch (error) {
           if (error instanceof GraphQLError) {
             throw error;

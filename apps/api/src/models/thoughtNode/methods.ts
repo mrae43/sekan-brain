@@ -58,7 +58,8 @@ export async function enrich(
  */
 export async function promoteToBrain(
   this: GraphNodeDocument,
-  approvedRelationships: IRelationship[]
+  approvedRelationships: IRelationship[],
+  embedding?: number[]
 ): Promise<GraphNodeDocument> {
   
   // 1. Validate and assign relationships
@@ -70,10 +71,15 @@ export async function promoteToBrain(
   );
   
   this.relationships = validRelationships;
+
+  // 2. Assign embedding if provided
+  if (embedding) {
+    this.embedding = embedding;
+  }
   
-  // 2. Move to permanent storage
+  // 3. Move to permanent storage
   this.stage = 'BRAIN';
   
-  // 3. Save and return
+  // 4. Save and return
   return this.save();
 }

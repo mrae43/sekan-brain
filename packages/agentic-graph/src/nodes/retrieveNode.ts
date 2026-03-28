@@ -1,14 +1,8 @@
 import { RefineryState } from "../state/graphState";
-import { OpenAIEmbeddings } from "@langchain/openai";
+import { AIProvider } from "../orchestration/aiProvider";
 import { ThoughtNode } from "@repo/api/src/models/thoughtNode/model"; 
 import { GraphExpandedThoughtNode } from "@repo/api/src/models/thoughtNode/types";
 
-const VECTOR_INDEX_NAME = process.env.VECTOR_INDEX_NAME || "vectorSearchIndex";
-
-const embeddings = new OpenAIEmbeddings({ 
-    modelName: "text-embedding-3-small", 
-    dimensions: 1536 
-  });
 
 /**
  * RETRIEVE NODE
@@ -19,28 +13,13 @@ export const retrieveNode = async (state: RefineryState): Promise<Partial<Refine
 
   try {
     const searchQuery = `${state.content} ${state.userNuance}`;
-    const queryVector = await embeddings.embedQuery(searchQuery);
+    const queryVector = await AIProvider.getEmbeddings().embedQuery(searchQuery);
 
-    const vectorPipeline = [
-      {
-        $vectorSearch: {
-          index: VECTOR_INDEX_NAME, 
-          path: "embedding",
-          queryVector: queryVector,
-          numCandidates: 100,
-          limit: 10,
-          filter: { 
-            stage: "BRAIN" 
-          }
-        }
-      },
-      {
-        // Project away the heavy embedding buffer for performance
-        $project: { embedding: 0, score: { $meta: "vectorSearchScore" } }
-      }
-    ];
-    
-    const resonantNodes = await ThoughtNode.aggregate(vectorPipeline);
+    const resonantNodes = await ThoughtNode.vectorSearch({
+      queryVector,
+      limit: 10,
+      stage: "BRAIN"
+    });
 
     if (!resonantNodes || resonantNodes.length === 0) {
       console.log(`[Retrieve Node] No existing resonance found.`);

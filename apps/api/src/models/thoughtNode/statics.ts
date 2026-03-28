@@ -1,22 +1,5 @@
 import { Types } from 'mongoose';
-import { GraphExpandedThoughtNode, IThoughtNodeModel, GraphNodeDocument } from './types';
-import { KnowledgeRefineryAgent } from '@repo/agentic-graph';
-
-/**
- * Horizontal Synthesis (Cross-subject discovery)
- * Find ThoughtNodes in OTHER subjects that share the same contextId
- */
-export async function findCrossSubjectResonance(
-  this: IThoughtNodeModel,
-  contextId: Types.ObjectId | string, 
-  currentSubject: string
-): Promise<GraphNodeDocument[]> {
-  return this.find({
-    contextId,
-    subject: { $ne: currentSubject },
-    stage: 'BRAIN' 
-  }).limit(10);
-}
+import { GraphExpandedThoughtNode, IThoughtNodeModel, GraphNodeDocument, CognitiveStage } from './types';
 
 /**
  * Weighted Graph Traversal for RAG
@@ -63,3 +46,46 @@ export async function expandThoughtGraph(
     }
   ])
 };
+
+/**
+ * ATLAS VECTOR SEARCH (Centralized)
+ */
+export async function vectorSearch(
+  this: IThoughtNodeModel,
+  { 
+    queryVector, 
+    limit = 10, 
+    numCandidates = 100, 
+    stage = 'BRAIN' 
+  }: { 
+    queryVector: number[], 
+    limit?: number, 
+    numCandidates?: number, 
+    stage?: CognitiveStage 
+  }
+): Promise<(GraphNodeDocument & { score: number })[]> {
+  const VECTOR_INDEX_NAME = process.env.VECTOR_INDEX_NAME || "vectorSearchIndex";
+  
+  const searchPayload: any = {
+    index: VECTOR_INDEX_NAME,
+    path: "embedding",
+    queryVector: queryVector,
+    numCandidates,
+    limit,
+    similarity: "cosine", 
+  };
+
+  if (stage) {
+    searchPayload.filter = { stage };
+  }
+
+  return this.aggregate([
+    { $vectorSearch: searchPayload },
+    {
+      $project: {
+        embedding: 0, 
+        score: { $meta: "vectorSearchScore" }
+      }
+    }
+  ]) as any;
+}
